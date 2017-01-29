@@ -1,0 +1,41 @@
+Random discoveries during testing
+--------------
+-) Volume Type BOX + IsHollow does not work properly.
+Particles appear in a straigt line at one half side of the box
+
+-) VolType BOX +
+--) VelType Outward:
+VelOutward is the velocity from the center of the box (in direction of Box position).
+velOutwardOther does nothing
+--) VelType SPHERICAL:
+Direction is pure random
+--) VelType HEMISPHERICAL:
+As Expected, same as spherical
+--) VelType ORTHO: As Expected; direction orients with object
+--) VelType CYLINDRICAL: Like Spherical, but with Cylinder coordinates
+
+-) Velocity Types seem to be independant of volume, except Outward
+
+
+----
+Tests of VelocityType OUTWARD:
+----
+-BOX
+--VelOutward is the velocity from the center of the box (in direction of Box position).
+--velOutwardOther does nothing
+-POINT
+--VelOutward is pure random velocity (see spherical)
+--VelOutwardOther does nothing
+-LINE (This is a bit tricky)
+--VelOutward is Velocity in direction Normal to Line Vector (sideways)
+--VelOutwardOther is Velocity in direction to line Vector (upwards)
+-SPHERE
+--VelOutward is velocity in sphere direction
+--VelOutwardOther does nothing
+-CYLINDER
+--VelOutward is velocity in cylinder radial dir
+--VelOutwardOther is upwards velocity
+
+
+
+-) VelocityDamping applies to gravity and velocity, but not to DriftVelocity

@@ -1,0 +1,13 @@
+29.01
+-----
+
+Fix Size (depends on texture size?)
+Improve performance
+Fix Colors (Alpha textures are too dark)
+
+--
+Ground Aligned doesn't work -- DONE
+FX list Delay doesn't work -- DONE
+
+
+

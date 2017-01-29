@@ -1,0 +1,257 @@
+FXList TestFX
+  ParticleSystem
+    Name = TestParticle1
+    Offset = X:0 Y:0 Z:10
+    ;OrientToObject = Yes    
+  End
+  
+End
+
+
+;-----------
+
+FXList MeteorImpactMedium
+
+   ParticleSystem
+    Name = MeteorImpactImpactBlastMedium
+   Offset = X:0.0 Y:0.0 Z:5.0
+  End
+
+  ParticleSystem
+    Name = MeteorFlameWaveMedium
+    InitialDelay = 0 0 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorBlastWaveMedium
+    InitialDelay = 100 100 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:3.0
+  End
+  
+  ParticleSystem
+    Name = ArtilleryBarrageDebrisHuge
+  End
+  
+  ParticleSystem
+    Name = MeteorDustWaveMedium
+	Offset = X:0.0 Y:0.0 Z:10.0
+  End
+  
+  ParticleSystem
+     Name = MeteorExplosionMedium
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionSmokeMedium
+    Offset = X:0.0 Y:0.0 Z:10.0
+    InitialDelay = 300 300 UNIFORM  
+  End
+  
+  ParticleSystem
+    Name = MediumGenericExploSparks
+  End
+
+  ParticleSystem
+    Name = FireballImpactFire ;FireFieldFire
+    Count = 8
+    Radius = 10 20 UNIFORM
+    InitialDelay = 750 1500 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  TerrainScorch
+    Type = RANDOM 
+    Radius = 55
+  End
+   
+  Sound
+    Name = MeteorImpactMedium
+  End
+  
+  Sound
+    Name = LargeExplosionEcho
+  End
+  
+  ViewShake 
+    Type = SEVERE
+  End
+
+End
+
+
+FXList MeteorImpactExplosionLarge
+   ParticleSystem
+     Name = MeteorExplosionDebrisFlyout
+     InitialDelay = 100 100 UNIFORM   ;In milliseconds
+     Offset = X:0.0 Y:0.0 Z:30.0
+  End
+  
+  ParticleSystem
+    Name = NukeShockwave
+    InitialDelay = 200 200 UNIFORM   ;In milliseconds
+    Offset = X:0.0 Y:0.0 Z:30.0
+  End
+  
+  ParticleSystem
+    Name = MeteorImpactExplosionCenter
+    ;InitialDelay = 200 200 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorImpactExplosionFlashy
+    ;InitialDelay = 200 200 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionDustWaveLarge
+    InitialDelay = 200 200 UNIFORM   ;In milliseconds
+    ;Offset = X:0.0 Y:0.0 Z:45.0
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionDustRing
+    InitialDelay = 150 150 UNIFORM   ;In milliseconds
+    ;Offset = X:0.0 Y:0.0 Z:45.0
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionDirtRing
+    InitialDelay = 150 150 UNIFORM   ;In milliseconds
+    ;Offset = X:0.0 Y:0.0 Z:45.0
+    ;Offset = X:0.0 Y:0.0 Z:0.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionSmokeClouds
+    InitialDelay = 100 100 UNIFORM   ;In milliseconds
+    ;Offset = X:0.0 Y:0.0 Z:45.0
+    Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorExplosionFlashFlare
+    Offset = X:0.0 Y:0.0 Z:15.0
+  End
+  
+  ParticleSystem
+    Name = MeteorBlastWaveHuge
+    Offset = X:0.0 Y:0.0 Z:10.0
+  End
+  
+  Sound
+    Name = MeteorExplosionLarge
+  End
+  
+  ViewShake 
+    Type = CINE_INSANE ;CINE_EXTREME
+  End
+  TerrainScorch
+    Type = RANDOM 
+    Radius = 200
+  End
+   LightPulse 
+    Color = R:255 G:196 B:128 
+    Radius = 5000 
+    IncreaseTime = 500 
+    DecreaseTime = 5000
+  End
+  
+End
+
+
+FXList MeteorImpactLarge
+   ParticleSystem
+    Name = MeteorImpactImpactBlastLarge
+   Offset = X:0.0 Y:0.0 Z:5.0
+  End
+
+  ParticleSystem
+    Name = MeteorFlameWaveMedium
+    InitialDelay = 0 0 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:8.0
+  End
+  
+  ParticleSystem
+    Name = MeteorBlastWaveLarge
+    ;InitialDelay = 100 100 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:3.0
+  End
+  
+  ParticleSystem
+    Name = MeteorLargeImpactGlow
+	Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+    Name = MeteorDustWaveLarge
+	Offset = X:0.0 Y:0.0 Z:10.0
+  End
+
+  ParticleSystem
+    Name = MeteorLargeBlastWaveInverted
+    InitialDelay = 150 150 UNIFORM
+    Offset = X:0.0 Y:0.0 Z:10.0
+  End
+  
+  Sound
+    Name = MeteorImpactLarge
+  End
+  
+  ViewShake 
+    Type = CINE_EXTREME
+  End
+  
+End
+
+
+
+FXList _TestFX
+  ParticleSystem
+    Name = TestParticle
+    Offset = X:0 Y:0 Z:10
+    ;OrientToObject = Yes    
+  End
+
+  ;ParticleSystem
+  ;  Name = TestParticleIndicator
+    ;Count = 16
+    ;Radius = 50 50 UNIFORM
+    Offset = X:0 Y:0 Z:1
+  ;End
+  
+End
+
+FXList WeaponFX_RocketBuggyMissileDetonation
+  Sound
+    Name = SmallMissileExplosion
+  End
+  Sound
+    Name = SmallExplosionEcho
+  End
+  ParticleSystem
+    Name = TinyGenericExploFireburst
+  End
+  ParticleSystem
+    Name = TinyGenericExploSparks
+  End
+  ParticleSystem
+    Name = TinyGenericExploSmoke
+  End
+  
+  ParticleSystem
+    Name = NukeCannonBlastWave
+    ;InitialDelay = 300 300 UNIFORM   ;In milliseconds
+    ;Offset = X:0.0 Y:0.0 Z:10.0
+  End
+  
+  ;TerrainScorch
+  ;  Type = RANDOM 
+  ;  Radius = 7
+  ;End
+End
