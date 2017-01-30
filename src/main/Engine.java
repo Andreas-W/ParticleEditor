@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
+import javax.media.j3d.BranchGroup;
+
+import util.Util;
 import entities.Entity;
 import entities.FXList;
 import entities.Particle;
@@ -41,6 +44,9 @@ public class Engine extends Thread {
 		long frameCounter = 0;
 		while (run)
 		{
+			initObjects();
+			
+			
 			long time = System.currentTimeMillis();
 
 			double deltaT = (time - lastTime) * 0.001;	//in seconds
@@ -68,6 +74,18 @@ public class Engine extends Thread {
 		}
 	}
 	
+	private void initObjects() {
+		ArrayList<Entity> entities = new ArrayList<Entity>(activeEntities);
+		//Iterate through copy of Entity list for concurrency reasons
+		for (Entity entity : entities) {
+			if (entity.engine == null) {
+				entity.init(this);
+				System.out.println(Util.timerLog.toString());
+				Util.clearTimer();
+			}
+		}
+	}
+
 	//We actually don't need the deltaT, since all calculations are frame-wise
 	private void gameStep(long frameCounter, double deltaT) {
 		int c_fx = 0;
@@ -75,12 +93,17 @@ public class Engine extends Thread {
 		int c_part = 0;
 		ArrayList<Entity> entities = new ArrayList<Entity>(activeEntities);
 		//Iterate through copy of Entity list for concurrency reasons
+		//Util.startTimer("GameStep"+frameCounter);
+		//renderer.sceneGroup.removeChild(renderer.particleGroup);
+		
 		for (Entity entity : entities) {
 			if (entity instanceof Particle) c_part++;
 			else if (entity instanceof ParticleSystem) c_sys++;
 			else if (entity instanceof FXList) c_fx++;
 
-			if (entity.engine == null) entity.init(this);
+			if (entity.engine == null) {
+				entity.init(this);
+			}
 			entity.update();
 			if (entity.dead) {
 				activeEntities.remove(entity);
@@ -89,6 +112,25 @@ public class Engine extends Thread {
 			
 			renderer.updateStatus(c_part, (int) (1.0 / deltaT));
 		}
+		
+		renderer.particleGroup.addChild(renderer.newParticleGroup);
+		renderer.newParticleGroup = new BranchGroup();
+		renderer.newParticleGroup.setCapability(BranchGroup.ALLOW_DETACH);
+		renderer.newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		renderer.newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+		renderer.newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		
+//		if (frameCounter % 1 == 0 && Util.timerLog.length() > 0) {
+//			System.out.println(Util.timerLog.toString());
+//			Util.clearTimer();
+//		}
+		
+//		Util.stopTimer("GameStep"+frameCounter);
+//		Util.timerLog.append(String.format("GameStep%d: Frametime= %.3f\n",frameCounter, deltaT*1000));
+//		if (frameCounter % 10 == 0) {
+//			System.out.println(Util.timerLog.toString());
+//			Util.clearTimer();
+//		}
 //		if (frameCounter % 2 == 0) {
 //			System.out.printf("--- Active Entities ---\nFXLists: %d\nParticleSystems: %d\nParticles: %d\n\n",c_fx, c_sys, c_part);
 //			for (Entity entity : entities) {

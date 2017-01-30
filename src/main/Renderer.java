@@ -25,6 +25,7 @@ import javax.media.j3d.Shape3D;
 import javax.media.j3d.Texture;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -60,6 +61,8 @@ public class Renderer {
 	public Canvas3D canvas;
 	public BranchGroup sceneGroup = new BranchGroup();
 	public BranchGroup particleGroup = new BranchGroup();
+	//public BranchGroup newParticleGroup = new BranchGroup();
+	public BranchGroup newParticleGroup = new BranchGroup();
 	
 	public JLabel statusLabel;
 	
@@ -77,6 +80,7 @@ public class Renderer {
     {
         ///////////////////////////
         System.setProperty("sun.awt.noerasebackground", "true");
+
         setupScene();
         setupFrame();
         
@@ -98,8 +102,9 @@ public class Renderer {
 				Texture texture = loadTexture(filename);
 				if (texture != null) TextureMap.put(filename.substring(0, filename.length()-4), texture);
 			}
+			System.out.println("Loaded Texture "+filename);
 		}
-		
+		System.out.println("Texture loading finished.");
 	}
 	
 	public Texture loadTexture(String filename) {
@@ -122,10 +127,13 @@ public class Renderer {
 	}
 	
 	public void setupScene() {
-		sceneGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-		particleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
 		particleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+		particleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
 		particleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+		newParticleGroup.setCapability(BranchGroup.ALLOW_DETACH);
+		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 		
 		canvas = new Canvas3D(SimpleUniverse.getPreferredConfiguration()); 		
 		SimpleUniverse universe = new SimpleUniverse(canvas); 
@@ -137,6 +145,7 @@ public class Renderer {
 		orbit.setSchedulingBounds(new BoundingSphere());
 
 		universe.getViewingPlatform().setViewPlatformBehavior(orbit);
+		universe.getViewer().getView().setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
 		
 		//-------
 		//Set up Objects
@@ -168,12 +177,12 @@ public class Renderer {
 		sceneGroup.addChild(new Shape3D(plane, ap));
 		
 		//-- Light
-		Color3f light1Color = new Color3f(1.8f, 0.1f, 0.1f);
-		Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
-		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0 ,0.0), 100.0);
-		DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
-		light1.setInfluencingBounds(bounds);
-		sceneGroup.addChild(light1);
+//		Color3f light1Color = new Color3f(1.8f, 0.1f, 0.1f);
+//		Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
+//		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0 ,0.0), 100.0);
+//		DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
+//		light1.setInfluencingBounds(bounds);
+//		sceneGroup.addChild(light1);
 		//-----
 
 		universe.addBranchGraph(sceneGroup);
@@ -213,5 +222,9 @@ public class Renderer {
 	
 	public void renderEntity(Entity entity) {
 		
+	}
+
+	public void clearParticles() {
+		this.particleGroup.removeAllChildren();
 	}
 }

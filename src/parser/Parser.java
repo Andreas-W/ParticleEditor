@@ -54,11 +54,12 @@ public class Parser {
 					}
 				}
 				particleSystemTypes.put(name, type);
+				System.out.println("Added ParticleSystem "+name);
 			}
 		}
 		
 		sc.close();
-		
+		System.out.println("ParticleSystem loading finished.");
 		System.out.println(log.toString());
 	}
 	
@@ -179,16 +180,19 @@ public class Parser {
 							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
 						}else if (next.toLowerCase().equals("viewshake")) {
 							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
+						}else if (next.toLowerCase().equals("terrainscorch")) {
+							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
 						}
 					}
 				}
 				FXListTypes.put(name, type);
+				System.out.println("Added FXList "+name);
 			}
 
 		}
 		
 		sc.close();
-		
+		System.out.println("FXList loading finished.");
 		System.out.println(log.toString());
 	}
 	//----------------

@@ -84,7 +84,8 @@ public class VelocityTypes {
 		public Vector3d getVelocity(ParticleSystem sys, Vector3d dir) {
 			Vector3d velocity = MathUtil.randomDir();
 			velocity.z = Math.abs(velocity.z);
-			velocity.scale(MathUtil.getRandomFloat(sys.type.VelSpherical));
+			velocity.scale(MathUtil.getRandomFloat(sys.type.VelHemispherical));
+			System.out.println("VelHemi_Length="+velocity.length());
 			return velocity;		
 		}		
 	};

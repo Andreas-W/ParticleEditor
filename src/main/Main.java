@@ -16,6 +16,7 @@ import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
 import entitytypes.FXListType.ParticleSystemEntry;
 import parser.Parser;
+import util.Util;
 
 public class Main {
 	
@@ -33,7 +34,7 @@ public class Main {
 		if (loaded) {
 			final Renderer renderer = new Renderer();
 			renderer.loadTextures();
-
+			
 
 			//engine.repeat = false;
 			Thread looper = new Thread(new Runnable() {			
@@ -43,14 +44,17 @@ public class Main {
 					while(run) {
 						try {
 							Engine engine = new Engine(renderer);
-							String FX = "MeteorImpactExplosionLarge";
-							if (FXListTypes.containsKey(FX)) {
-								engine.addEntity(new FXList(FXListTypes.get(FX)));
+							String FX = "FX_TerrorMortarSiteWeaponExplosion";
+							FXListType type = getFXList(FX);
+							if (type != null) {
+								engine.addEntity(new FXList(type));
 								engine.start();
 								engine.join();
-								Thread.sleep(1000);
+								System.out.println(Util.timerLog.toString());
+								Util.clearTimer();
+								renderer.clearParticles();
+								Thread.sleep(2000);
 							}else {
-								System.out.println("Could not find FXList "+FX);
 								run = false;
 							}
 						} catch (InterruptedException e) {
@@ -91,11 +95,22 @@ public class Main {
 	}
 	
 	public static ParticleSystemType getParticleSystem(String name) {
-		return ParticleSystemTypes.get(name);
+		if (ParticleSystemTypes.containsKey(name)) {
+			return ParticleSystemTypes.get(name);
+		}else {
+			System.out.println("Could not find ParticleSystem "+name);
+			return null;
+		}
 	}
 	
 	public static FXListType getFXList(String name) {
+		if (FXListTypes.containsKey(name)) {
 		return FXListTypes.get(name);
+		}else {
+			System.out.println("Could not find FXList "+name);
+			return null;
+		}
+		
 	}
 
 }

@@ -8,6 +8,8 @@ import javax.vecmath.Vector3f;
 public class MathUtil {
 	
 	public static final double J3D_COORD_SCALE = 0.01;
+
+	public static final float TINY_FLOAT = 0.001f;
 	
 	public static Random rand = new Random();
 	
@@ -90,6 +92,9 @@ public class MathUtil {
 	        d2 = x*x + y*y + z*z;
 	    } while (d2 <= Double.MIN_NORMAL);
 	    double s = Math.sqrt(1.0 / d2);
+	    if (Double.isNaN(s)) {
+	    	System.out.println("RandomDir:NaN!");
+	    }
 	    return new Vector3d (x*s, y*s, z*s);
 	}
 	

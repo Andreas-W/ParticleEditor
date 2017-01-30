@@ -30,6 +30,7 @@ public class ParticleSystem extends Entity{
 	
 	public int InitialDelay;
 	public float StartSizeRate; //I'm not entirely sure if this is per-system and not rolled each frame
+	public float StartSize = 0;
 	public ArrayList<SimpleEntry<Integer, Vector3f>> colors;
 	
 	private int nextBurst = 0;
@@ -37,15 +38,18 @@ public class ParticleSystem extends Entity{
 	public Texture texture;
 	
 	public Entity parent; //Attached to an Object or a particle
+
+	private int spawnDelay = 0;
 	
-	public ParticleSystem(ParticleSystemType type) {
+	public ParticleSystem(ParticleSystemType type, int spawnDelay) {
 		this.type = type;
+		this.spawnDelay = spawnDelay;
 	}
 	
 	@Override
 	public void init(Engine engine) {
 		super.init(engine);
-		InitialDelay = MathUtil.getRandomInt(type.InitialDelay);
+		InitialDelay = MathUtil.getRandomInt(type.InitialDelay) + spawnDelay;
 		StartSizeRate = MathUtil.getRandomFloat(type.StartSizeRate);
 		colors = new ArrayList<SimpleEntry<Integer, Vector3f>>();
 		if (type.Color1 != null){ colors.add(new SimpleEntry<Integer, Vector3f>(type.Color1.frame, type.Color1.toVec()));
@@ -63,19 +67,20 @@ public class ParticleSystem extends Entity{
 	@Override
 	public void update() {
 		
-		if (parent != null) {
-			this.setPosition(parent.getPosition()); //TODO: Offsets
-			if (parent.dead) {
-				this.dead = true;
-				return;
-			}
-		}
+//		if (parent != null) {
+//			this.setPosition(parent.getPosition());
+//			//TODO: Offsets
+//			if (parent.dead) {
+//				this.dead = true;
+//				return;
+//			}
+//		}
 		
 		if (InitialDelay > 0) {
 			InitialDelay--;
 		}else {
 			super.update();
-			if (this.timer > type.SystemLifetime) {
+			if (type.SystemLifetime != 0 && this.timer > type.SystemLifetime) {
 				this.dead = true;
 				//System.out.println("ParticleSystemLifetime is over.");
 				return;
@@ -92,8 +97,10 @@ public class ParticleSystem extends Entity{
 					position.add(this.getPosition());
 					//TODO: Add parent rotation and offset
 					
-					Particle part = new Particle(this, position, velocity);
+					Particle part = new Particle(this, position, velocity, StartSize);
 					engine.addEntity(part);
+					
+					StartSize = Math.min(StartSize + StartSizeRate, 50.0f);
 				}
 			}
 		}

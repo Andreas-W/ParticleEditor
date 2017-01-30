@@ -1,12 +1,83 @@
 FXList TestFX
-  ParticleSystem
-    Name = TestParticle1
-    Offset = X:0 Y:0 Z:10
+  ;ParticleSystem
+   ; Name = TestParticle1
+   ; Offset = X:0 Y:0 Z:10
     ;OrientToObject = Yes    
+  ;End
+  
+  
+   ParticleSystem
+     Name = LargeMortarExplosionFlash
+     Offset = X:0.0 Y:0.0 Z:5.0
   End
   
 End
 
+
+FXList FX_TerrorMortarSiteWeaponExplosion
+  ViewShake 
+    Type = SEVERE
+  End
+  
+  Sound
+    Name = LargeMortarExplosion
+  End
+  
+  TerrainScorch
+    Type = RANDOM 
+    Radius = 65
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionCondensation
+     InitialDelay = 0 0 UNIFORM   ;In milliseconds
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = ArtilleryBarrageDebrisHuge ;LargeMortarExplosionDebris
+     InitialDelay = 0 0 UNIFORM   ;In milliseconds
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionFire
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionArms
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionSparks
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionFlash
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionBlastwave
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionSmokeRing
+     InitialDelay = 50 50 UNIFORM   ;In milliseconds
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+  ParticleSystem
+     Name = LargeMortarExplosionSmokeMushroom
+     InitialDelay = 50 50 UNIFORM   ;In milliseconds
+     Offset = X:0.0 Y:0.0 Z:5.0
+  End
+  
+End
 
 ;-----------
 

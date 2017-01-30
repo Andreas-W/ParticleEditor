@@ -27,39 +27,45 @@ public class FXList extends Entity{
 		spawnTimes = new int[type.ParticleSystems.size()];
 		for(int i = 0; i < type.ParticleSystems.size(); i++) {
 			ParticleSystemEntry entry = type.ParticleSystems.get(i);
-			spawnTimes[i] = (int) ((float)MathUtil.getRandomInt(entry.InitialDelay) / 33.333f);
+			preLoadParticleSystem(entry);
 		}
 	}
 	
 	@Override
 	public void update() {
 		boolean done = true;
-		for (int i = 0; i < spawnTimes.length; i++) {
-			if (spawnTimes[i] > -1) {
-				done = false;
-				if (spawnTimes[i] <= this.timer) {
-					spawnTimes[i] = -1;
-
-					//Create a Particle System
-					ParticleSystemEntry entry = type.ParticleSystems.get(i);
-					if (Main.ParticleSystemTypes.containsKey(entry.Name)) {
-						ParticleSystemType p_type = Main.getParticleSystem(entry.Name);
-						ParticleSystem psys = new ParticleSystem(p_type);
-						Vector3d position = this.getPosition();
-						position.add(new Vector3d(entry.Offset[0], entry.Offset[1], entry.Offset[2]));
-						psys.setPosition(position);
-						engine.addEntity(psys);
-					}else {
-						System.out.println("Could not find ParticleSystem "+entry.Name);
-					}
-				}
-			}
-		}
+		
+		//FXList doesn't do anything right now
+		//We might still need this later for LightPulse/Sound, etc.
+		
+//		for (int i = 0; i < spawnTimes.length; i++) {
+//			if (spawnTimes[i] > -1) {
+//				done = false;
+//				if (spawnTimes[i] <= this.timer) {
+//					spawnTimes[i] = -1;
+//
+//					//Create a Particle System
+//					
+//				}
+//			}
+//		}
 		if (done) {
 			this.dead = true;
 		}
 		super.update();
 	}
 	
+	public void preLoadParticleSystem(ParticleSystemEntry entry) {
+		ParticleSystemType p_type = Main.getParticleSystem(entry.Name);
+		int spawnDelay = (int) ((float)MathUtil.getRandomInt(entry.InitialDelay) / 33.333f);
+		ParticleSystem psys = new ParticleSystem(p_type, spawnDelay);
+		Vector3d position = this.getPosition();
+		position.add(new Vector3d(entry.Offset[0], entry.Offset[1], entry.Offset[2]));
+		psys.setPosition(position);
+
+		engine.addEntity(psys);
+		psys.init(engine);
+
+	}
 
 }
