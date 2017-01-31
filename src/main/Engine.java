@@ -17,10 +17,13 @@ public class Engine extends Thread {
 	
 	public Renderer renderer;
 	public int maxTime = 1500; //150 frames = 5 Seconds
-	double maxFrametime = 1.0 / (double)Main.FPS;
+	public double maxFrametime = 1.0 / (double)Main.FPS;
 	//public boolean repeat = false;
 	//public long globalTimer = 0;
 	boolean run;
+	
+	int maxParticles = 0;
+	int minFPS = -1;
 	
 	public ArrayList<Entity> activeEntities = new ArrayList<Entity>();
 	
@@ -41,9 +44,20 @@ public class Engine extends Thread {
 	public void mainLoop() throws InterruptedException {
 		long lastTime = System.currentTimeMillis();
 		run = true;
-		long frameCounter = 0;
-		while (run)
+		int frameCounter = 0;
+		maxParticles = 0;
+		minFPS = -1;
+		while (run && !renderer.isReset())
 		{
+			maxFrametime = 1.0 / (double)Main.FPS;
+			
+			boolean reset = false;
+			while (renderer.pause() && ((reset = renderer.isReset()) == false)) {
+				sleep((long)((maxFrametime)*1000.0));
+				lastTime = System.currentTimeMillis();
+			}
+			if (reset) run = false;
+			
 			initObjects();
 			
 			
@@ -64,14 +78,10 @@ public class Engine extends Thread {
 			gameStep(frameCounter, deltaT);
 			
 			if (frameCounter >= maxTime || activeEntities.size() == 0) {
-			//	if (repeat) {
-			//		frameCounter = 0;
-			//	}else {
-					run = false;
-					renderer.updateStatus(0, (int) (1.0 / deltaT));
-			//	}
+				run = false;
 			}
 		}
+		renderer.updateStatus(0, -1, -1, -1, -1);
 	}
 	
 	private void initObjects() {
@@ -80,14 +90,14 @@ public class Engine extends Thread {
 		for (Entity entity : entities) {
 			if (entity.engine == null) {
 				entity.init(this);
-				System.out.println(Util.timerLog.toString());
-				Util.clearTimer();
+			//	System.out.println(Util.timerLog.toString());
+			//	Util.clearTimer();
 			}
 		}
 	}
 
 	//We actually don't need the deltaT, since all calculations are frame-wise
-	private void gameStep(long frameCounter, double deltaT) {
+	private void gameStep(int frameCounter, double deltaT) {
 		int c_fx = 0;
 		int c_sys = 0;
 		int c_part = 0;
@@ -101,6 +111,10 @@ public class Engine extends Thread {
 			else if (entity instanceof ParticleSystem) c_sys++;
 			else if (entity instanceof FXList) c_fx++;
 
+			if (c_part > maxParticles) maxParticles = c_part;
+			int fps = (int) (1.0 / deltaT);
+			if (minFPS == -1 || fps < minFPS) minFPS = fps;
+				
 			if (entity.engine == null) {
 				entity.init(this);
 			}
@@ -110,7 +124,7 @@ public class Engine extends Thread {
 				entity.clear3D();
 			}
 			
-			renderer.updateStatus(c_part, (int) (1.0 / deltaT));
+			renderer.updateStatus(c_part, fps, minFPS, maxParticles, frameCounter);
 		}
 		
 		renderer.particleGroup.addChild(renderer.newParticleGroup);

@@ -28,7 +28,7 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		
+		//boolean loaded = loadFiles("C:/Games/Command & Conquer Generalz GIT/Data/INI/ParticleSystem.ini", "C:/Games/Command & Conquer Generalz GIT/Data/INI/FXList.ini");
 		boolean loaded = loadFiles("testparticle.txt", "testFX.txt");
 		
 		if (loaded) {
@@ -40,25 +40,32 @@ public class Main {
 			Thread looper = new Thread(new Runnable() {			
 				@Override
 				public void run() {
+					boolean active = true; //Always true
 					boolean run = true;
-					while(run) {
-						try {
-							Engine engine = new Engine(renderer);
-							String FX = "FX_TerrorMortarSiteWeaponExplosion";
-							FXListType type = getFXList(FX);
-							if (type != null) {
-								engine.addEntity(new FXList(type));
-								engine.start();
-								engine.join();
-								System.out.println(Util.timerLog.toString());
-								Util.clearTimer();
-								renderer.clearParticles();
-								Thread.sleep(2000);
-							}else {
-								run = false;
+					while(active) {
+						if (run || renderer.isReset()) {
+							try {
+								renderer.mainWindow.running = true;
+								Engine engine = new Engine(renderer);
+								//String FX = "FX_TerrorMortarSiteWeaponExplosion";
+								String FX = (String) renderer.browsePanel.getA_lst_FX().getSelectedValue();
+								FXListType type = getFXList(FX);
+								if (type != null) {
+									engine.addEntity(new FXList(type));
+									engine.start();
+									engine.join();
+									//System.out.println(Util.timerLog.toString());
+									//Util.clearTimer();
+									renderer.clearParticles();
+									run = renderer.mainWindow.getTglbtnAutoplay().isSelected();
+								}else {
+									//run = false;
+								}
+							} catch (InterruptedException e) {
+								active = false;
 							}
-						} catch (InterruptedException e) {
-							run = false;
+						} else {
+							run = renderer.mainWindow.getTglbtnAutoplay().isSelected();
 						}
 					}
 				}

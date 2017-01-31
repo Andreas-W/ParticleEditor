@@ -53,6 +53,9 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import entities.Entity;
 import entitytypes.ParticleSystemType;
+import gui.BrowsePanel;
+import gui.MainWindow;
+import gui.StatusPanel;
 
 public class Renderer {
 	
@@ -63,8 +66,12 @@ public class Renderer {
 	public BranchGroup particleGroup = new BranchGroup();
 	//public BranchGroup newParticleGroup = new BranchGroup();
 	public BranchGroup newParticleGroup = new BranchGroup();
-	
-	public JLabel statusLabel;
+
+	//GUI ELEMENTS
+	//---------------
+	public MainWindow mainWindow;
+	public StatusPanel statusPanel;
+	public BrowsePanel browsePanel;
 	
 	static {
 		IIORegistry registry = IIORegistry.getDefaultInstance();
@@ -190,30 +197,31 @@ public class Renderer {
 	}
 	
 	public void setupFrame() {
-		JFrame frame = new JFrame("ParticleEditor");
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		frame.setLayout(new BorderLayout());
-        frame.setSize(1024, 768);
+		mainWindow = new MainWindow(this);
+        //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		//frame.setLayout(new BorderLayout());
+        //frame.setSize(1024, 768);
 
 		// create the status bar panel and shove it down the bottom of the frame
-		JPanel statusPanel = new JPanel();
-		statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
-		frame.add(statusPanel, BorderLayout.SOUTH);
-		statusPanel.setPreferredSize(new Dimension(frame.getWidth(), 16));
-		statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
-		statusLabel = new JLabel("");
-		statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		statusPanel.add(statusLabel);
-		frame.add("South", statusPanel);
-        
-        frame.add("Center", canvas);
+		
+		JPanel contentPanel = mainWindow.getContentPane();
+		statusPanel = new StatusPanel();
+		contentPanel.add(statusPanel, BorderLayout.SOUTH);
+		statusPanel.setPreferredSize(new Dimension(mainWindow.getWidth(), 24));
 
-        frame.setVisible(true); 
+		browsePanel = new BrowsePanel(this);
+		browsePanel.fillList(Main.FXListTypes.keySet());
+		contentPanel.add(browsePanel, BorderLayout.WEST);
+       
+        contentPanel.add("Center", canvas);
+
+        mainWindow.setVisible(true); 
 
 	}
 	
-	public void updateStatus(int particleCount, int fps) {
-		this.statusLabel.setText(String.format("Particle Count: %4d / FPS: %d", particleCount, fps));
+	public void updateStatus(int particleCount, int fps, int minFPS, int maxParticles, int totalFrames) {
+		statusPanel.updateStatus(particleCount, fps, minFPS, maxParticles, totalFrames);
+		//this.statusLabel.setText(String.format("Particle Count: %4d / FPS: %d", particleCount, fps));
 	}
 	
 	public void renderScene() {
@@ -226,5 +234,23 @@ public class Renderer {
 
 	public void clearParticles() {
 		this.particleGroup.removeAllChildren();
+	}
+
+	@Deprecated
+	public boolean isRunning() {
+		return mainWindow.isRunning();
+	}
+	
+	public boolean isReset() {
+		if(mainWindow.reset) {
+			mainWindow.reset = false;
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	public boolean pause() {
+		return mainWindow.getTglbtnPlay().isSelected(); //Actually is buttonPause
 	}
 }

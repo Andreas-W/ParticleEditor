@@ -433,7 +433,7 @@ public class Particle extends Entity{
 	}
 	
 	private void setPlaneCoordinatesGroundAligned(QuadArray plane) {
-		float s = 0.5f; // this.Size * 0.5f * (float)MathUtil.J3D_COORD_SCALE;
+		float s = 1f; // this.Size * 0.5f * (float)MathUtil.J3D_COORD_SCALE;
 		plane.setCoordinate(3, new Point3f(-s, 0, -s));
 		plane.setCoordinate(2, new Point3f(s, 0, -s));
 		plane.setCoordinate(1, new Point3f(s, 0, s));

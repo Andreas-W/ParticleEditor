@@ -1,3 +1,24 @@
+FXList _TestFXNew
+  ParticleSystem
+    Name = TestParticleNew
+	Offset = X:0 Y:0 Z:0.0
+	Count = 10
+	Height = 20 20 CONSTANT
+	Radius = 100 100
+	;OrientToObject = Yes
+	InitialDelay = 1 1000 UNIFORM
+  End
+  
+  ParticleSystem
+    Name = TestParticle2
+	Offset = X:0 Y:00 Z:20
+
+	;OrientToObject = Yes    
+  End
+  
+End
+
+
 FXList TestFX
   ;ParticleSystem
    ; Name = TestParticle1

@@ -27,5 +27,9 @@ public class FXListType {
 		public boolean OrientToObject = false; // [Yes/No]
 		public float[] Offset = new float[]{ 0.0f, 0.0f, 0.0f };
 		public int[] InitialDelay = new int[]{0, 0};
+		public int Count = 1;
+		public float[] Radius = new float[]{0, 0};
+		public float[] Height = new float[]{0, 0};
+		
 	}
 }

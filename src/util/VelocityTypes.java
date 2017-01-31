@@ -85,7 +85,7 @@ public class VelocityTypes {
 			Vector3d velocity = MathUtil.randomDir();
 			velocity.z = Math.abs(velocity.z);
 			velocity.scale(MathUtil.getRandomFloat(sys.type.VelHemispherical));
-			System.out.println("VelHemi_Length="+velocity.length());
+			//System.out.println("VelHemi_Length="+velocity.length());
 			return velocity;		
 		}		
 	};

@@ -2,6 +2,7 @@ package util;
 
 import java.util.Random;
 
+import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
@@ -108,5 +109,11 @@ public class MathUtil {
 	 */
 	public static Vector3d toJ3DVec(Vector3d vec) {
 		return new Vector3d(vec.x * J3D_COORD_SCALE, vec.z * J3D_COORD_SCALE, vec.y * J3D_COORD_SCALE);
+	}
+
+	public static Vector2f getPolarOffset(float angle, float radius) {
+		float x = (float) (radius * Math.cos(angle));
+		float y = (float) (radius * Math.sin(angle));
+		return new Vector2f(x,y);
 	}
 }

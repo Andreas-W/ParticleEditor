@@ -1,3 +1,121 @@
+
+ParticleSystem TestParticle2
+  Priority = WEAPON_TRAIL
+  IsOneShot = No
+  Shader = ADDITIVE
+  Type = PARTICLE
+  ParticleName = EXTest.tga
+  AngleZ = 0 0
+  AngularRateZ = 0 0
+  AngularDamping = 1 1
+  VelocityDamping = 0.4 0.4
+  Gravity = 0
+  Lifetime = 10 10
+  SystemLifetime = 300
+  Size = 5 5
+  StartSizeRate = 0 0
+  SizeRate = 0 0
+  SizeRateDamping = 1 1
+  Alpha1 = 1 1 0
+  Color1 = R:255 G:255 B:0 0
+  ColorScale = 0 0
+  BurstDelay = 8 8
+  BurstCount = 1 1
+  InitialDelay = 0 0
+  DriftVelocity = X:0.0 Y:0.0 Z:0
+  VelocityType = ORTHO
+  VelOrthoX = 0 0
+  VelOrthoY = 0 0
+  VelOrthoZ = 0 0
+  ;---
+  VolumeType = POINT ;LINE, CYLINDER, SPHERE
+  IsHollow = No
+  IsGroundAligned = No
+  IsEmitAboveGroundOnly = No
+  IsParticleUpTowardsEmitter = No
+  WindMotion = Unused
+End
+
+
+ParticleSystem TestParticleNew
+  Priority = WEAPON_TRAIL
+  IsOneShot = No
+  Shader = ADDITIVE
+  Type = PARTICLE
+  ParticleName = EXTest.tga
+  AngleZ = 0 0
+  AngularRateZ = 0 0
+  AngularDamping = 1 1
+  VelocityDamping = 1 1
+  Gravity = 0 0
+  Lifetime = 10 10
+  SystemLifetime = 300
+  Size = 20 20
+  StartSizeRate = 0 0
+  SizeRate = 0 0
+  SizeRateDamping = 1 1
+  Alpha1 = 1 1 0
+  Color1 = R:255 G:255 B:255 0
+  ColorScale = 0 0
+  BurstDelay = 8 8
+  BurstCount = 1 1
+  InitialDelay = 0 0
+  DriftVelocity = X:0.0 Y:0.0 Z:0
+  ;----------------------------------
+  ;VELOCITY TYPES
+  ;--------------------
+  ;VelocityType = CYLINDRICAL
+  ;VelCylindricalRadial = 0 0
+  ;VelCylindricalNormal = 0 0
+  ;---
+  ;VelocityType = OUTWARD
+  ;VelOutward = 12 12
+  ;VelOutwardOther = 0 0
+  ;---
+  ;VelocityType = SPHERICAL
+  ;VelSpherical = 1 1
+  ;---
+  ;VelocityType = HEMISPHERICAL
+  ;VelHemispherical = 1 1
+  ;---
+  VelocityType = ORTHO
+  VelOrthoX = 0 0
+  VelOrthoY = 0 0
+  VelOrthoZ = 0 0
+  ;---
+  ;VelocityType = CYLINDRICAL
+  ;VelCylindricalRadial = 1 1
+  ;VelCylindricalNormal = 0 0
+  ;---------------------------
+  ;VOLUME TYPES
+  ;-----------------------
+  ;VolumeType = BOX
+  ;VolBoxHalfSize = X:30 Y:10.0 Z:5
+  ;---
+  VolumeType = POINT ;LINE, CYLINDER, SPHERE
+  ;---
+  ;VolumeType = LINE
+  ;VolLineStart = X:-30 Y:0 Z:0
+  ;VolLineEnd = X:15 Y:15 Z:25
+  ;---
+  ;VolumeType = SPHERE
+  ;VolSphereRadius = 30
+  ;---
+  ;VolumeType = CYLINDER
+  ;VolCylinderRadius = 30
+  ;VolCylinderLength = 20
+  ;-----------------------
+  IsHollow = No
+  IsGroundAligned = No
+  IsEmitAboveGroundOnly = No
+  IsParticleUpTowardsEmitter = No
+  WindMotion = Unused
+End
+
+
+
+
+
 ParticleSystem TestParticle1
   Priority = WEAPON_EXPLOSION
   IsOneShot = No
