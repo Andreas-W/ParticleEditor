@@ -38,6 +38,7 @@ import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
 import javax.vecmath.TexCoord2f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import net.nikr.dds.DDSImageReader;
@@ -66,6 +67,8 @@ public class Renderer {
 	public BranchGroup particleGroup = new BranchGroup();
 	//public BranchGroup newParticleGroup = new BranchGroup();
 	public BranchGroup newParticleGroup = new BranchGroup();
+	
+	SimpleUniverse universe;
 
 	//GUI ELEMENTS
 	//---------------
@@ -143,17 +146,19 @@ public class Renderer {
 		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 		
 		canvas = new Canvas3D(SimpleUniverse.getPreferredConfiguration()); 		
-		SimpleUniverse universe = new SimpleUniverse(canvas); 
+		universe = new SimpleUniverse(canvas); 
 		//SimpleUniverse universe = new SimpleUniverse();
 		canvas.getView().setMinimumFrameCycleTime(1000/60);
 		canvas.getView().setBackClipDistance(100.0);
-		universe.getViewingPlatform().setNominalViewingTransform();
+		
+		//universe.getViewingPlatform().setNominalViewingTransform();
 		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ROTATE);
 		orbit.setSchedulingBounds(new BoundingSphere());
 
 		universe.getViewingPlatform().setViewPlatformBehavior(orbit);
 		universe.getViewer().getView().setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
 		
+		resetCamera();
 		//-------
 		//Set up Objects
 		Appearance ap = new Appearance();
@@ -165,7 +170,7 @@ public class Renderer {
 		//Box groundBox = new Box(10.0f, 0.1f, 10.0f, primflags, ap);
 		QuadArray plane = new QuadArray (4, QuadArray.COORDINATES | QuadArray.TEXTURE_COORDINATE_2);
 		float s = 2.5f;
-		int t = 3; //texture repeats
+		int t = 4; //texture repeats
 		plane.setCoordinate(3, new Point3f(-s, 0f, -s));
 		plane.setCoordinate(2, new Point3f(s, 0f, -s));
 		plane.setCoordinate(1, new Point3f(s, 0f, s));
@@ -224,13 +229,23 @@ public class Renderer {
 		//this.statusLabel.setText(String.format("Particle Count: %4d / FPS: %d", particleCount, fps));
 	}
 	
-	public void renderScene() {
+	public void resetCamera() {
+		TransformGroup viewingTransformGroup = universe.getViewingPlatform().getViewPlatformTransform();
+		Transform3D viewingTransform = new Transform3D();
+
+		double pitch = 0.9163; // for 37.5° angle
+		double r = 3.50; //350.0
+		double x = r * Math.sin(pitch);
+		double y = r * Math.cos(pitch);
 		
+	    Point3d eye = new Point3d(x, y, 0);  
+	    Point3d center = new Point3d(0,0,0);
+	    Vector3d up = new Vector3d(0,1,0);
+	    viewingTransform.lookAt(eye, center, up);
+	    viewingTransform.invert();
+	    viewingTransformGroup.setTransform(viewingTransform);
 	}
 	
-	public void renderEntity(Entity entity) {
-		
-	}
 
 	public void clearParticles() {
 		this.particleGroup.removeAllChildren();

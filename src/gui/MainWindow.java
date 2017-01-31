@@ -46,8 +46,8 @@ public class MainWindow extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public MainWindow(Renderer renderer) {
-		this.renderer = renderer;
+	public MainWindow(Renderer rend) {
+		this.renderer = rend;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 690, 300);
 		contentPane = new JPanel();
@@ -111,6 +111,11 @@ public class MainWindow extends JFrame {
 		panel_1.add(toolBar_1);
 		
 		JButton btnResetView = new JButton("Reset View");
+		btnResetView.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				renderer.resetCamera();
+			}
+		});
 		toolBar_1.add(btnResetView);
 	}
 
