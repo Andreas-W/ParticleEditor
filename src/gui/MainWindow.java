@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 
@@ -9,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.ComboBoxModel;
 import javax.swing.JToolBar;
 import javax.swing.JToggleButton;
 import javax.swing.JButton;
@@ -27,6 +29,19 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+
+import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+
+import javax.swing.JComboBox;
+import javax.swing.JSplitPane;
 
 public class MainWindow extends JFrame {
 
@@ -41,15 +56,20 @@ public class MainWindow extends JFrame {
 	public boolean running = true;
 	public boolean reset = false;
 	
+	public ArrayList<Color> colors;
+	
 	private JToggleButton tglbtnPlay;
 	private JSlider sld_FPS;
+	private JFormattedTextField txt_ZOffset;
+	private JCheckBox chckbxShowGround;
+	private JComboBox cb_bgColor;
 	/**
 	 * Create the frame.
 	 */
 	public MainWindow(Renderer rend) {
 		this.renderer = rend;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 690, 300);
+		setBounds(100, 100, 840, 338);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -117,6 +137,71 @@ public class MainWindow extends JFrame {
 			}
 		});
 		toolBar_1.add(btnResetView);
+		
+		JPanel panel_2 = new JPanel();
+		toolBar_1.add(panel_2);
+		
+		chckbxShowGround = new JCheckBox("Show Ground");
+		chckbxShowGround.setSelected(true);
+		chckbxShowGround.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				renderer.setGroundVisible(chckbxShowGround.isSelected());
+			}
+		});
+
+//		chckbxShowGround.addPropertyChangeListener(new PropertyChangeListener() {
+//			public void propertyChange(PropertyChangeEvent evt) {
+//				renderer.setGroundVisible(chckbxShowGround.isSelected());
+//			}
+//		});
+		panel_2.add(chckbxShowGround);
+		
+		JLabel lblNewLabel = new JLabel("Ground Offset:");
+		panel_2.add(lblNewLabel);
+		
+		txt_ZOffset = new JFormattedTextField(); //NumberFormat.getNumberInstance());
+		txt_ZOffset.setValue(new Float(0.0f));
+		txt_ZOffset.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent arg0) {
+				if (txt_ZOffset.getValue() != null) {
+					renderer.setGroundOffset((float)txt_ZOffset.getValue());
+				}
+			}
+		});
+		txt_ZOffset.setColumns(8);
+		panel_2.add(txt_ZOffset);
+		
+		JPanel panel_3 = new JPanel();
+		toolBar_1.add(panel_3);
+		
+		JLabel lblBackground = new JLabel("Background:");
+		panel_3.add(lblBackground);
+		
+		cb_bgColor = new JComboBox(); //COLORS		
+
+		colors = new ArrayList<Color>();
+		colors.add(Color.BLACK); cb_bgColor.addItem("black");
+		colors.add(Color.WHITE); cb_bgColor.addItem("white");
+		colors.add(Color.LIGHT_GRAY); cb_bgColor.addItem("light gray");
+		colors.add(Color.GRAY); cb_bgColor.addItem("gray");
+		colors.add(Color.DARK_GRAY); cb_bgColor.addItem("dark gray");
+		colors.add(Color.RED); cb_bgColor.addItem("red");
+		colors.add(Color.GREEN); cb_bgColor.addItem("green");
+		colors.add(Color.BLUE); cb_bgColor.addItem("blue");
+		colors.add(Color.CYAN); cb_bgColor.addItem("cyan");
+		colors.add(Color.MAGENTA); cb_bgColor.addItem("magenta");
+		colors.add(Color.YELLOW); cb_bgColor.addItem("yellow");
+		colors.add(Color.ORANGE); cb_bgColor.addItem("orange");
+		colors.add(Color.PINK); cb_bgColor.addItem("pink");
+		cb_bgColor.setSelectedIndex(0);
+		
+		cb_bgColor.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				renderer.setBackgroundColor(colors.get(cb_bgColor.getSelectedIndex()));
+			}
+		});
+
+		panel_3.add(cb_bgColor);
 	}
 
 	public JLabel getLblFps_val() {
@@ -141,4 +226,14 @@ public class MainWindow extends JFrame {
 	public JSlider getSld_FPS() {
 		return sld_FPS;
 	}
+	public JFormattedTextField getTxt_ZOffset() {
+		return txt_ZOffset;
+	}
+	public JCheckBox getChckbxShowGround() {
+		return chckbxShowGround;
+	}
+	public JComboBox getCb_bgColor() {
+		return cb_bgColor;
+	}
+
 }

@@ -1,3 +1,76 @@
+ParticleSystem TestParticleCenter
+  Priority = WEAPON_TRAIL
+  IsOneShot = No
+  Shader = ADDITIVE
+  Type = PARTICLE
+  ParticleName = EXTest.tga
+  AngleZ = 0 0
+  AngularRateZ = 0 0
+  AngularDamping = 1 1
+  VelocityDamping = 1 1
+  Gravity = 0 0
+  Lifetime = 10 10
+  SystemLifetime = 300
+  Size = 50 50
+  StartSizeRate = 0 0
+  SizeRate = 0 0
+  SizeRateDamping = 1 1
+  Alpha1 = 1 1 0
+  Color1 = R:255 G:255 B:255 0
+  ColorScale = 0 0
+  BurstDelay = 8 8
+  BurstCount = 1 1
+  InitialDelay = 0 0
+  DriftVelocity = X:0.0 Y:0.0 Z:0
+  VelocityType = NONE
+  VolumeType = POINT
+  IsHollow = No
+  IsGroundAligned = Yes
+  IsEmitAboveGroundOnly = No
+  IsParticleUpTowardsEmitter = No
+  WindMotion = Unused
+End
+
+
+ParticleSystem TestParticleUp
+  Priority = CRITICAL
+  IsOneShot = No
+  Shader = ADDITIVE
+  Type = PARTICLE
+  ParticleName = FXLightArrow.tga
+  AngleZ =  0 7 ;3.1416 3.1416
+  AngularRateZ = -1 1
+  AngularDamping = 1 1
+  VelocityDamping = 1 1
+  Gravity = 0
+  Lifetime = 24 24
+  SystemLifetime = 300
+  Size = 10 10
+  StartSizeRate = 0 0
+  SizeRate = 0 0
+  SizeRateDamping = .90 .90
+  Alpha1 = 1 1 0
+  Color1 = R:255 G:255 B:255 0
+  Color2 = R:0 G:0 B:0 60
+  ColorScale = 0 0
+  BurstDelay = 1 1
+  BurstCount = 1 1
+  InitialDelay = 0 0
+  DriftVelocity = X:0.0 Y:0.0 Z:0.0
+  VelocityType = ORTHO
+  VelOrthoX = 3.0 3.0
+  VelOrthoY = 0 0
+  VelOrthoZ = 0 0
+  VolumeType = CYLINDER
+  VolCylinderRadius = 50.0
+  VolCylinderLength = 0.0
+  IsHollow = Yes
+  IsGroundAligned = Yes
+  IsEmitAboveGroundOnly = No
+  IsParticleUpTowardsEmitter = Yes
+  WindMotion = Unused
+End
+
 
 ParticleSystem TestParticle2
   Priority = WEAPON_TRAIL
@@ -117,42 +190,45 @@ End
 
 
 ParticleSystem TestParticle1
-  Priority = WEAPON_EXPLOSION
+  Priority = CRITICAL
   IsOneShot = No
-  Shader = ADDITIVE
+  Shader = ALPHA
   Type = PARTICLE
-  ParticleName = EXExplosionSparky.dds
+  ParticleName = EXCloud01.tga
   AngleZ = 0 7
-  AngularRateZ = -0.02 .02
-  AngularDamping = .96 .99
-  VelocityDamping = .85 .90
-  Gravity = .02
-  Lifetime = 25.00 25.00
-  SystemLifetime = 1
-  Size = 13.00 18.00
-  StartSizeRate = .00 .00
-  SizeRate = 4.00 5.00
-  SizeRateDamping = 1.00 1.00
-  Alpha1 = .00 .00 0
-  Color1 = R:255 G:255 B:255 0
-  Color2 = R:0 G:0 B:0 25
-  ColorScale = .00 .00
-  BurstDelay = .00 .00
-  BurstCount = 5.00 5.00
-  InitialDelay = .00 .00
-  DriftVelocity = X:0.00 Y:0.00 Z:0.00
+  AngularRateZ = -0.01 .01
+  AngularDamping = 1 1
+  VelocityDamping = 1 1
+  Gravity = 0
+  Lifetime = 300 300
+  SystemLifetime = 100
+  Size = 1 25
+  StartSizeRate = 0 0
+  SizeRate = .25 .50
+  SizeRateDamping = 1 1
+  Alpha1 = 0 0 0
+  Alpha2 = .75 .75 20
+  Alpha3 = .50 .50 110
+  Alpha4 = 0 0 175
+  Color1 = R:255 G:233 B:166 0
+  Color2 = R:122 G:122 B:122 300
+  ColorScale = -1 1
+  BurstDelay = 5 5
+  BurstCount = 5 5
+  InitialDelay = 0 0
+  DriftVelocity = X:0 Y:0 Z:0.10
   VelocityType = OUTWARD
-  VelOutward = 1.00 2.00
-  VelOutwardOther = 1.75 2.00
+  VelOutward = -0.75 -0.75
+  VelOutwardOther = 0 0
   VolumeType = CYLINDER
-  VolCylinderRadius = 15.00
-  VolCylinderLength = 5
+  VolCylinderRadius = 150
+  VolCylinderLength = 0
   IsHollow = Yes
   IsGroundAligned = No
   IsEmitAboveGroundOnly = No
   IsParticleUpTowardsEmitter = No
+  WindMotion = Unused
 End
-
 
 
 
@@ -1715,7 +1791,7 @@ ParticleSystem TestParticle
   Gravity = -0.02
   Lifetime = 30 30
   SystemLifetime = 1
-  Size = 1 2
+  Size = 3 4
   StartSizeRate = 0 0
   SizeRate = 0.2 0.8
   SizeRateDamping = 0.91 0.93
@@ -1725,16 +1801,16 @@ ParticleSystem TestParticle
   Color3 = R:0 G:0 B:0 20
   ColorScale = 0 0
   BurstDelay = 9 9
-  BurstCount = 15 15
+  BurstCount = 25 25
   InitialDelay = 0 0
   DriftVelocity = X:0.00 Y:0.0 Z:0.00
   VelocityType = OUTWARD
-  VelOutward = 2 5
-  VelOutwardOther = 0 3
+  VelOutward = -10 -5
+  VelOutwardOther = 0 0
   VolumeType = CYLINDER
-  VolCylinderRadius = 20
+  VolCylinderRadius = 100
   VolCylinderLength = 10
-  IsHollow = No
+  IsHollow = Yes
   IsGroundAligned = No
   IsEmitAboveGroundOnly = No
   IsParticleUpTowardsEmitter = No

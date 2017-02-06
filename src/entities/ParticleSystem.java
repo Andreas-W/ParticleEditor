@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import javax.media.j3d.Texture;
+import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
@@ -32,6 +33,8 @@ public class ParticleSystem extends Entity{
 	public float StartSizeRate; //I'm not entirely sure if this is per-system and not rolled each frame
 	public float StartSize = 0;
 	public ArrayList<SimpleEntry<Integer, Vector3f>> colors;
+	
+	public ParticleSystem slaveSystem = null;
 	
 	private int nextBurst = 0;
 	
@@ -61,7 +64,16 @@ public class ParticleSystem extends Entity{
 		if (type.Color7 != null && type.Color7.frame > type.Color6.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color7.frame, type.Color7.toVec()));
 		if (type.Color8 != null && type.Color8.frame > type.Color7.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color8.frame, type.Color8.toVec()));
 		if (type.Color9 != null && type.Color9.frame > type.Color8.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color9.frame, type.Color9.toVec()));	}}}}}}}}}
-		this.texture = Renderer.TextureMap.get(this.type.ParticleName.substring(0, this.type.ParticleName.length()-4));
+		this.texture = engine.renderer.TextureMap.get(this.type.ParticleName.substring(0, this.type.ParticleName.length()-4));
+		if (type.SlaveSystem != null && !type.SlaveSystem.equals("")) {
+			ParticleSystemType ptype = Main.getParticleSystem(type.SlaveSystem);
+			ParticleSystem psys = new ParticleSystem(ptype, spawnDelay);
+			Vector3d position = this.getPosition();
+			if (type.SlavePosOffset != null)position.add(type.SlavePosOffset.toVec());
+			psys.setPosition(position);
+			engine.addEntity(psys);
+			psys.init(engine);
+		}
 	}
 	
 	@Override
@@ -92,12 +104,14 @@ public class ParticleSystem extends Entity{
 				for (int i = 0; i < burstCount; i++) {
 					Vector3d dir = new Vector3d(0.0, 0.0, 0.0);
 					
-					Vector3d position = getSpawnPosition(dir);
-					Vector3d velocity = getSpawnVelocity(dir);				
+					Vector3d offset = getSpawnPosition(dir);
+					Vector3d velocity = getSpawnVelocity(dir);			
+					
+					Vector3d position = new Vector3d(offset);
 					position.add(this.getPosition());
 					//TODO: Add parent rotation and offset
 					
-					Particle part = new Particle(this, position, velocity, StartSize);
+					Particle part = new Particle(this, position, offset, velocity, StartSize);
 					engine.addEntity(part);
 					
 					StartSize = Math.min(StartSize + StartSizeRate, 50.0f);

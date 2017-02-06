@@ -29,7 +29,9 @@ public class FXList extends Entity{
 		spawnTimes = new int[type.ParticleSystems.size()];
 		for(int i = 0; i < type.ParticleSystems.size(); i++) {
 			ParticleSystemEntry entry = type.ParticleSystems.get(i);
-			preLoadParticleSystem(entry);
+			if (entry.isVisible()) {
+				preLoadParticleSystem(entry);
+			}
 		}
 	}
 	

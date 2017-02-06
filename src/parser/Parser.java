@@ -174,14 +174,12 @@ public class Parser {
 							}
 							type.ParticleSystems.add(entry);
 							end = false;
-						}else if (next.toLowerCase().equals("lightpulse")) {
-							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
-						}else if (next.toLowerCase().equals("sound")) {
-							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
-						}else if (next.toLowerCase().equals("viewshake")) {
-							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
-						}else if (next.toLowerCase().equals("terrainscorch")) {
-							while (sc.hasNext() && !sc.next().toLowerCase().equals("end")) {};
+						}else if (isAdditionalEntry(next)) {
+							type.additionalEntries += next;
+							while (sc.hasNextLine() && !((next = sc.nextLine()).trim().toLowerCase()).equals("end")) {
+								type.additionalEntries+= (next)+"\n";
+							};
+							type.additionalEntries+="End\n";
 						}
 					}
 				}
@@ -196,6 +194,95 @@ public class Parser {
 		System.out.println(log.toString());
 	}
 	//----------------
+	
+	private static boolean isAdditionalEntry(String next) {
+		return next.toLowerCase().equals("lightpulse") || 
+				next.toLowerCase().equals("sound") ||
+				next.toLowerCase().equals("viewshake") ||
+				next.toLowerCase().equals("terrainscorch");
+	}
+	
+	public static FXListType parseFXListCode(String code, String name) {
+		Scanner sc = new Scanner(code);
+		sc.useLocale(Locale.ENGLISH);
+		sc.useDelimiter("\\s+;.*\\s+|;.*\\s+|(\\s*=)?\\s*[rRgGbBxXyYzZ]\\s*:\\s*|(\\s*=\\s*)|\\s+");
+		String next = "";
+		StringBuilder log = new StringBuilder();
+		FXListType type = new FXListType();
+		boolean eof = false;
+		while (sc.hasNextLine() && !eof) {
+			if (sc.hasNext()) next = sc.next();
+			else eof = true;
+			if (next.equals("")) eof = true;
+			boolean end;
+		  //Parse ParticleSystem entries
+			if (next.toLowerCase().equals("particlesystem")) {
+				end = false;
+				FXListType.ParticleSystemEntry entry = type.new ParticleSystemEntry();
+				while (sc.hasNextLine() && !end) {
+					if (sc.hasNext()) next = sc.next();
+					if (next.toLowerCase().equals("end")) {
+						end = true;
+					}else {
+						try {
+							parseToken(next, entry, sc);
+							if (errors.size() > 0) {
+								log.append(name).append("\n");
+								for (String s : errors) {
+									log.append("  ").append(s).append("\n");
+								}
+								log.append("---\n");
+								errors.clear();
+							}
+						} catch (IllegalArgumentException
+								| IllegalAccessException e) {
+							log.append("could not parse token '"+ next+"'\n");
+						}
+					}
+				}
+				type.ParticleSystems.add(entry);
+				end = false;
+			}else if (isAdditionalEntry(next)) {
+				type.additionalEntries += next;
+				while (sc.hasNextLine() && !((next = sc.nextLine()).trim().toLowerCase()).equals("end")) {
+					type.additionalEntries+= (next)+"\n";
+				};
+				type.additionalEntries+="End\n";
+			}
+		}
+		return type;
+	}
+	
+
+	public static ParticleSystemType parseParticleSystemCode(String code, String name) {
+		ParticleSystemType type = new ParticleSystemType();
+		Scanner sc = new Scanner(code);
+		sc.useLocale(Locale.ENGLISH);
+		sc.useDelimiter("\\s+;.*\\s+|;.*\\s+|(\\s*=)?\\s*[rRgGbBxXyYzZ]\\s*:\\s*|(\\s*=\\s*)|\\s+");
+		String next = "";
+		StringBuilder log = new StringBuilder();
+		boolean eof = false;
+		while (sc.hasNextLine() && !eof) {
+			if (sc.hasNext()) next = sc.next();
+			if (next.equals("")) eof = true;
+			try {
+				parseToken(next, type, sc);
+				if (errors.size() > 0) {
+					log.append(name).append("\n");
+					for (String s : errors) {
+						log.append("  ").append(s).append("\n");
+					}
+					log.append("---\n");
+					errors.clear();
+				}
+			} catch (IllegalArgumentException
+					| IllegalAccessException e) {
+				log.append("could not parse token '"+ next+"'\n");
+			}
+		}
+		return type;
+	}
+	
 	
 	private static class ParseErrorException extends Exception {
 		String msg;
@@ -251,4 +338,5 @@ public class Parser {
 			throw new ParseErrorException("Failed to parse boolean value.");
 		}
 	}
+
 }

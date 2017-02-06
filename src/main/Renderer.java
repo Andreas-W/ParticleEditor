@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Label;
@@ -15,12 +16,15 @@ import javax.imageio.ImageIO;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.stream.FileImageInputStream;
 import javax.media.j3d.Appearance;
+import javax.media.j3d.Background;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.ImageComponent;
 import javax.media.j3d.QuadArray;
+import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
 import javax.media.j3d.Texture;
 import javax.media.j3d.Transform3D;
@@ -30,6 +34,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -41,6 +46,7 @@ import javax.vecmath.TexCoord2f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import util.MathUtil;
 import net.nikr.dds.DDSImageReader;
 import net.nikr.dds.DDSImageReaderSpi;
 
@@ -51,22 +57,31 @@ import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Sphere;
 import com.sun.j3d.utils.image.TextureLoader;
 import com.sun.j3d.utils.universe.SimpleUniverse;
+import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import entities.Entity;
 import entitytypes.ParticleSystemType;
 import gui.BrowsePanel;
+import gui.EditPanel;
 import gui.MainWindow;
 import gui.StatusPanel;
+import gui.TexturePreviewFrame;
 
 public class Renderer {
 	
-	public static HashMap<String, Texture> TextureMap = new HashMap<String, Texture>();
+	public HashMap<String, Texture> TextureMap = new HashMap<String, Texture>();
 	
 	public Canvas3D canvas;
 	public BranchGroup sceneGroup = new BranchGroup();
 	public BranchGroup particleGroup = new BranchGroup();
 	//public BranchGroup newParticleGroup = new BranchGroup();
 	public BranchGroup newParticleGroup = new BranchGroup();
+	
+	private TransformGroup tgGround = new TransformGroup();
+	private Shape3D ground;
+	private Background background;
+	
+	public TexturePreviewFrame texturePreview;
 	
 	SimpleUniverse universe;
 
@@ -75,6 +90,9 @@ public class Renderer {
 	public MainWindow mainWindow;
 	public StatusPanel statusPanel;
 	public BrowsePanel browsePanel;
+	public EditPanel editPanel;
+
+	private float groundOffset;
 	
 	static {
 		IIORegistry registry = IIORegistry.getDefaultInstance();
@@ -94,6 +112,8 @@ public class Renderer {
         setupScene();
         setupFrame();
         
+        this.texturePreview = new TexturePreviewFrame(this);
+        texturePreview.setVisible(false);
 //        SwingUtilities.invokeLater(new Runnable() {
 //            public void run()
 //            {
@@ -110,6 +130,8 @@ public class Renderer {
 			String filename = type.ParticleName;
 			if (!TextureMap.containsKey(filename.substring(0, filename.length()-4))) {
 				Texture texture = loadTexture(filename);
+				texture.setCapability(Texture.ALLOW_IMAGE_READ);
+				texture.getImage(0).setCapability(ImageComponent.ALLOW_IMAGE_READ);
 				if (texture != null) TextureMap.put(filename.substring(0, filename.length()-4), texture);
 			}
 			System.out.println("Loaded Texture "+filename);
@@ -150,6 +172,12 @@ public class Renderer {
 		//SimpleUniverse universe = new SimpleUniverse();
 		canvas.getView().setMinimumFrameCycleTime(1000/60);
 		canvas.getView().setBackClipDistance(100.0);
+		background = new Background(new Color3f(Color.BLACK));
+		background.setApplicationBounds(new BoundingSphere(new Point3d(0,0,0), Double.MAX_VALUE));
+		background.setCapability(Background.ALLOW_COLOR_WRITE);
+
+		sceneGroup.addChild(background);
+
 		
 		//universe.getViewingPlatform().setNominalViewingTransform();
 		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ROTATE);
@@ -164,6 +192,10 @@ public class Renderer {
 		Appearance ap = new Appearance();
 		ap.setColoringAttributes(new ColoringAttributes(0.5f, 0.6f, 0.1f, ColoringAttributes.NICEST));
 		ap.setTexture(loadTexture("TLGras01a.tga"));
+		ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+		RenderingAttributes ra = new RenderingAttributes();
+		ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+		ap.setRenderingAttributes(ra);
 		
 		
 		//int primflags = Primitive.GENERATE_NORMALS + Primitive.GENERATE_TEXTURE_COORDS; 
@@ -186,7 +218,11 @@ public class Renderer {
 //		tg.addChild(groundBox);
 		//Sphere sphere = new Sphere(0.5f);
 		//group.addChild(sphere);
-		sceneGroup.addChild(new Shape3D(plane, ap));
+		ground = new Shape3D(plane, ap);
+		ground.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+		tgGround.addChild(ground);
+		tgGround.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		sceneGroup.addChild(tgGround);
 		
 		//-- Light
 //		Color3f light1Color = new Color3f(1.8f, 0.1f, 0.1f);
@@ -205,20 +241,43 @@ public class Renderer {
 		mainWindow = new MainWindow(this);
         //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//frame.setLayout(new BorderLayout());
-        //frame.setSize(1024, 768);
+        mainWindow.setSize(1024, 768);
+        canvas.setMinimumSize(new Dimension(800, 600));
 
 		// create the status bar panel and shove it down the bottom of the frame
 		
 		JPanel contentPanel = mainWindow.getContentPane();
 		statusPanel = new StatusPanel();
-		contentPanel.add(statusPanel, BorderLayout.SOUTH);
 		statusPanel.setPreferredSize(new Dimension(mainWindow.getWidth(), 24));
 
+		editPanel = new EditPanel(this);
 		browsePanel = new BrowsePanel(this);
-		browsePanel.fillList(Main.FXListTypes.keySet());
+		browsePanel.browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+    
+		
+		//mainWindow.getMainSplitPane().add(browsePanel);
+		//mainWindow.getMainSplitPane().add(canvas);
+		//mainWindow.getMainSplitPane().add(editPanel);
+		//JSplitPane split1 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, browsePanel, canvas);
+		//JSplitPane split2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split1, editPanel);
+		//contentPanel.add(split2, BorderLayout.CENTER);
+		
 		contentPanel.add(browsePanel, BorderLayout.WEST);
-       
-        contentPanel.add("Center", canvas);
+		contentPanel.add(canvas, BorderLayout.CENTER);
+		contentPanel.add(editPanel, BorderLayout.EAST);
+		
+		//split1.setDividerSize(4);
+//		split1.setDividerLocation(250);
+//		split1.setResizeWeight(0);
+//		split1.setOneTouchExpandable(true);
+//		//split2.setDividerSize(4);
+//		split2.setDividerLocation(750);
+//		split2.setResizeWeight(1);
+//		split2.setOneTouchExpandable(true);
+		contentPanel.add(statusPanel, BorderLayout.SOUTH);
+		//contentPanel.add(browsePanel, BorderLayout.WEST);
+		//contentPanel.add(editPanel, BorderLayout.EAST);
+        //contentPanel.add("Center", canvas);
 
         mainWindow.setVisible(true); 
 
@@ -267,5 +326,25 @@ public class Renderer {
 
 	public boolean pause() {
 		return mainWindow.getTglbtnPlay().isSelected(); //Actually is buttonPause
+	}
+
+	public void setGroundOffset(float value) {
+		Transform3D trans = new Transform3D();
+		trans.setTranslation(new Vector3f(0.0f, (float) -(value * MathUtil.J3D_COORD_SCALE), 0.0f));
+		tgGround.setTransform(trans);
+	}
+
+	public void setGroundVisible(boolean visible) {
+		if (ground != null) {
+			ground.getAppearance().getRenderingAttributes().setVisible(visible);
+		}
+	}
+
+	public void setBackgroundColor(Color color) {
+		background.setColor(new Color3f(color));
+	}
+
+	public boolean isInParticleMode() {
+		return this.browsePanel.getActiveTab().getTpane_browse().getSelectedIndex()==1;
 	}
 }

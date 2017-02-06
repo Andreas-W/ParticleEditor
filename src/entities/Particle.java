@@ -36,8 +36,10 @@ import com.sun.j3d.utils.geometry.ColorCube;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.alphaEntry;
 import entitytypes.ParticleSystemType.e_Shader;
+import entitytypes.ParticleSystemType.e_VolumeType;
 import util.MathUtil;
 import util.Util;
+import util.VolumeTypes;
 import main.Engine;
 import main.Main;
 import main.Renderer;
@@ -78,6 +80,9 @@ public class Particle extends Entity{
 	
 	public int ColorScale;
 	
+	private Vector3d offset;
+	private final Vector3d spawnPos;
+	
 	//Java3D stuff
 	public BranchGroup bg;
 	public TransformGroup tg;
@@ -86,10 +91,12 @@ public class Particle extends Entity{
 	public Appearance ap;
 	TransformGroup billboardGroup;
 	
-	public Particle(ParticleSystem sys, Vector3d position, Vector3d velocity, float startSize) {
+	public Particle(ParticleSystem sys, Vector3d position, Vector3d offset, Vector3d velocity, float startSize) {
 		this.system = sys;
 		this.setPosition(position);
 		this.Velocity = velocity;
+		this.offset = offset;
+		this.spawnPos = new Vector3d(position);
 		this.startSize = startSize;
 		if (Double.isNaN(Velocity.x))  {
 			System.out.println("Velocity NaN");
@@ -135,6 +142,13 @@ public class Particle extends Entity{
 		//-- AngleZ
 		AngleZ += AngularRateZ;
 		AngularRateZ *= AngularDamping;
+		
+		if (system.type.IsParticleUpTowardsEmitter && system.type.IsGroundAligned) {
+			Vector3d current_offset = this.getPosition(); //new vector
+			current_offset.sub(current_offset, spawnPos);
+			current_offset.add(offset);
+			this.AngleZ = (float) (-Math.atan2(current_offset.y, current_offset.x) - Math.PI*0.5);
+		}
 		
 		//-- Color
 		/* ------------------------
@@ -275,6 +289,21 @@ public class Particle extends Entity{
 		this.SizeRateDamping = MathUtil.getRandomFloat(system.type.SizeRateDamping);
 		this.ColorScale = MathUtil.getRandomInt(system.type.ColorScale);
 		
+		//Corrections based on in-game behaviour of IsParticleUpTowardsEmitter. It's weird
+		if (system.type.IsParticleUpTowardsEmitter) {
+			this.AngularDamping = 1.0f;
+			this.AngularRateZ = 0.0f;
+			if (!system.type.IsGroundAligned) {
+				if (Math.abs(this.Velocity.length()) <= 0.001 && system.type.VolumeType == e_VolumeType.POINT) {
+					this.AngleZ = (float) Math.PI;
+				}else {
+					this.AngleZ = MathUtil.getRandomFloat(0.0f, (float) (Math.PI*2.0f));
+				}
+			}else {
+				this.AngleZ = (float) (-Math.atan2(this.offset.y, this.offset.x)- Math.PI*0.5);
+			}
+		}
+		
 		alphaValues = new ArrayList<SimpleEntry<Integer,Float>>();
 
 		addAlphaValue(system.type.Alpha1);
@@ -345,7 +374,6 @@ public class Particle extends Entity{
 		//texAttr.setCombineRgbMode(TextureAttributes.COMBINE_ADD_SIGNED);
 		ap.setTextureAttributes(texAttr);
 		Color3f col = new Color3f(1.0f, 1.0f, 1.0f);
-		Color3f black = new Color3f(0,0,0);
 		if (this.system.colors.size() >= 1 ) {
 			Vector3f c = system.colors.get(0).getValue();
 			col.x = c.x/255.0f;
@@ -391,13 +419,7 @@ public class Particle extends Entity{
 			plane.setTextureCoordinate(0, 0, new TexCoord2f(0, t));
 			shape = new Shape3D(plane, ap);
 		}
-		
-	//	Util.stopTimer("ParticleInit_Quad");
-	//	Util.startTimer("ParticleInit_Transform_Billboard");
-		
-		//ColorCube cc = new ColorCube(1.0f);
-		//tg.addChild(cc);
-		
+	
 		billboardGroup = new TransformGroup(); 
 	    billboardGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 	    billboardGroup.setCapability(BranchGroup.ALLOW_DETACH);
@@ -407,29 +429,16 @@ public class Particle extends Entity{
 		    trans2.setRotation(new AxisAngle4f(0.0f, 1.0f, 0.0f, this.AngleZ));
 		    billboardGroup.setTransform(trans2);
 	    }
-	    
-//	    billboard = new Billboard(billboardGroup, Billboard.ROTATE_ABOUT_POINT, new Point3f(MathUtil.toJ3DVec(this.getPosition())));
-//	    BoundingSphere bSphere = new BoundingSphere(new Point3d(0,0,0), Double.MAX_VALUE);
-//	    billboard.setSchedulingBounds(bSphere);
-//	    billboard.setCapability(BranchGroup.ALLOW_DETACH);
-//	    billboard.setAlignmentAxis(0.0f, 0.0f, 1.0f);
-	    
+
 	    billboardGroup.addChild(shape);
 	    tg.addChild(billboardGroup);
 	    
 	    bg = new BranchGroup();
 	    bg.addChild(tg);
-	    //bg.addChild(billboard);
 	    bg.setCapability(BranchGroup.ALLOW_DETACH);
-	 //   Util.stopTimer("ParticleInit_Transform_Billboard");
 
-	 //   Util.startTimer("ParticleInit_BranchGroup");
-	    //bg.compile();
 	    engine.renderer.newParticleGroup.addChild(bg);
-	 //   Util.stopTimer("ParticleInit_BranchGroup");
-	    //engine.renderer.particleGroup.addChild(billboard);
 
-	 //   Util.stopTimer("ParticleInit_Total");
 	}
 	
 	private void setPlaneCoordinatesGroundAligned(QuadArray plane) {

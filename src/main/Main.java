@@ -6,7 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -26,12 +28,24 @@ public class Main {
 	public static HashMap<String, ParticleSystemType> ParticleSystemTypes = new HashMap<String, ParticleSystemType>();
 	public static HashMap<String, FXListType> FXListTypes = new HashMap<String, FXListType>();
 	
+	public static HashMap<String, ParticleSystemType> work_ParticleSystemTypes = new HashMap<String, ParticleSystemType>();
+	public static HashMap<String, FXListType> work_FXListTypes = new HashMap<String, FXListType>();
+	
+	public static ArrayList<String> FXListNames = new ArrayList<String>(); //Keep update with above hashset;
+	public static ArrayList<String> ParticleSystemNames = new ArrayList<String>(); //Keep update with above hashset;
+	
+	public static FXListType activeFXListType; //Currently active FX Type
+	public static ParticleSystemType activeParticleSystemType;
+	
 	public static void main(String[] args) {
+		
+		Locale.setDefault(Locale.US);
 		
 		//boolean loaded = loadFiles("C:/Games/Command & Conquer Generalz GIT/Data/INI/ParticleSystem.ini", "C:/Games/Command & Conquer Generalz GIT/Data/INI/FXList.ini");
 		boolean loaded = loadFiles("testparticle.txt", "testFX.txt");
 		
 		if (loaded) {
+
 			final Renderer renderer = new Renderer();
 			renderer.loadTextures();
 			
@@ -48,8 +62,17 @@ public class Main {
 								renderer.mainWindow.running = true;
 								Engine engine = new Engine(renderer);
 								//String FX = "FX_TerrorMortarSiteWeaponExplosion";
-								String FX = (String) renderer.browsePanel.getA_lst_FX().getSelectedValue();
-								FXListType type = getFXList(FX);
+								FXListType type = Main.activeFXListType;
+//								boolean particleMode = renderer.isInParticleMode();
+//								if (particleMode) {
+//									//String part = (String) renderer.browsePanel.getActiveTab().getA_lst_Particles().getSelectedValue();
+//									//if (part == null) run = false;
+//									type = FXListType.getFXTypeFromParticle(part);
+//								}else {
+//									String FX = (String) renderer.browsePanel.getActiveTab().getA_lst_FX().getSelectedValue();
+//									if (FX == null) run = false;
+//									else type = getFXList(FX);
+//								}
 								if (type != null) {
 									engine.addEntity(new FXList(type));
 									engine.start();
@@ -59,7 +82,7 @@ public class Main {
 									renderer.clearParticles();
 									run = renderer.mainWindow.getTglbtnAutoplay().isSelected();
 								}else {
-									//run = false;
+									run = false;
 								}
 							} catch (InterruptedException e) {
 								active = false;
@@ -94,6 +117,13 @@ public class Main {
 		try {
 			Parser.parseParticleSystemINI(particleSystems, ParticleSystemTypes);
 			Parser.parseFXListINI(FXLists, FXListTypes);
+			
+			updateParticleSystemNames();
+			updateFXListNames();
+			
+			activeParticleSystemType = ParticleSystemTypes.get(ParticleSystemNames.get(0));
+			activeFXListType = FXListTypes.get(FXListNames.get(0));
+			
 			return true;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -101,6 +131,19 @@ public class Main {
 		}		
 	}
 	
+	
+	public static void updateFXListNames() {
+		FXListNames = new ArrayList<String>();
+		FXListNames.addAll(FXListTypes.keySet());
+		Collections.sort(FXListNames);
+	}
+
+	public static void updateParticleSystemNames() {
+		ParticleSystemNames = new ArrayList<String>();
+		ParticleSystemNames.addAll(ParticleSystemTypes.keySet());
+		Collections.sort(ParticleSystemNames);
+	}
+
 	public static ParticleSystemType getParticleSystem(String name) {
 		if (ParticleSystemTypes.containsKey(name)) {
 			return ParticleSystemTypes.get(name);

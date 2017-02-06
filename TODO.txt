@@ -1,9 +1,15 @@
+02.02
+-----
+
+
+
+
 29.01
 -----
 
-Fix Size (depends on texture size?)
-Improve performance
-Fix Colors (Alpha textures are too dark)
+Fix Size (depends on texture size?) - DONE
+Improve performance - DONE
+Fix Colors (Alpha textures are too dark) - DONE
 
 --
 Ground Aligned doesn't work -- DONE
