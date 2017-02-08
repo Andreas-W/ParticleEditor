@@ -19,6 +19,7 @@ import main.Engine;
 import main.Main;
 import main.Renderer;
 import entitytypes.ParticleSystemType;
+import entitytypes.ParticleSystemType.e_Type;
 
 
 /**
@@ -44,6 +45,8 @@ public class ParticleSystem extends Entity{
 
 	private int spawnDelay = 0;
 	
+	private StreakParticle prevParticle = null;
+	
 	public ParticleSystem(ParticleSystemType type, int spawnDelay) {
 		this.type = type;
 		this.spawnDelay = spawnDelay;
@@ -52,6 +55,7 @@ public class ParticleSystem extends Entity{
 	@Override
 	public void init(Engine engine) {
 		super.init(engine);
+		if (this.type == null) return;
 		InitialDelay = MathUtil.getRandomInt(type.InitialDelay) + spawnDelay;
 		StartSizeRate = MathUtil.getRandomFloat(type.StartSizeRate);
 		colors = new ArrayList<SimpleEntry<Integer, Vector3f>>();
@@ -65,7 +69,7 @@ public class ParticleSystem extends Entity{
 		if (type.Color8 != null && type.Color8.frame > type.Color7.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color8.frame, type.Color8.toVec()));
 		if (type.Color9 != null && type.Color9.frame > type.Color8.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color9.frame, type.Color9.toVec()));	}}}}}}}}}
 		this.texture = engine.renderer.TextureMap.get(this.type.ParticleName.substring(0, this.type.ParticleName.length()-4));
-		if (type.SlaveSystem != null && !type.SlaveSystem.equals("")) {
+		if (type.SlaveSystem != null && !type.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(type.SlaveSystem)) {
 			ParticleSystemType ptype = Main.getParticleSystem(type.SlaveSystem);
 			ParticleSystem psys = new ParticleSystem(ptype, spawnDelay);
 			Vector3d position = this.getPosition();
@@ -78,6 +82,10 @@ public class ParticleSystem extends Entity{
 	
 	@Override
 	public void update() {
+		if (type == null){
+			this.dead = true;
+			return;
+		}
 		
 //		if (parent != null) {
 //			this.setPosition(parent.getPosition());
@@ -111,8 +119,16 @@ public class ParticleSystem extends Entity{
 					position.add(this.getPosition());
 					//TODO: Add parent rotation and offset
 					
-					Particle part = new Particle(this, position, offset, velocity, StartSize);
-					engine.addEntity(part);
+
+					if (this.type.Type == e_Type.PARTICLE) {
+						Particle part = new Particle(this, position, offset, velocity, StartSize);
+						engine.addEntity(part);
+					}else if (this.type.Type == e_Type.STREAK) {
+						StreakParticle part = new StreakParticle(this, position, offset, velocity, StartSize);
+						if (prevParticle != null && !prevParticle.dead) part.prev = prevParticle;
+						prevParticle = part;
+						engine.addEntity(part);
+					}
 					
 					StartSize = Math.min(StartSize + StartSizeRate, 50.0f);
 				}

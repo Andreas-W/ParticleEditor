@@ -60,6 +60,7 @@ import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import entities.Entity;
+import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
 import gui.BrowsePanel;
 import gui.EditPanel;
@@ -83,7 +84,7 @@ public class Renderer {
 	
 	public TexturePreviewFrame texturePreview;
 	
-	SimpleUniverse universe;
+	public SimpleUniverse universe;
 
 	//GUI ELEMENTS
 	//---------------
@@ -109,6 +110,7 @@ public class Renderer {
         ///////////////////////////
         System.setProperty("sun.awt.noerasebackground", "true");
 
+        loadTextures();
         setupScene();
         setupFrame();
         
@@ -126,24 +128,30 @@ public class Renderer {
 	 * Load all textures used in currently loaded ParticleSystems
 	 */
 	public void loadTextures() {
-		for (ParticleSystemType type : Main.ParticleSystemTypes.values()) {
+		for (String pname : Main.ParticleSystemTypes.keySet()) {
+			ParticleSystemType type = Main.ParticleSystemTypes.get(pname);
 			String filename = type.ParticleName;
 			if (!TextureMap.containsKey(filename.substring(0, filename.length()-4))) {
-				Texture texture = loadTexture(filename);
-				texture.setCapability(Texture.ALLOW_IMAGE_READ);
-				texture.getImage(0).setCapability(ImageComponent.ALLOW_IMAGE_READ);
-				if (texture != null) TextureMap.put(filename.substring(0, filename.length()-4), texture);
+				Texture texture = loadTexture(filename, pname);			
+				if (texture != null) {
+					texture.setCapability(Texture.ALLOW_IMAGE_READ);
+					texture.getImage(0).setCapability(ImageComponent.ALLOW_IMAGE_READ);
+					TextureMap.put(filename.substring(0, filename.length()-4), texture);
+					//System.out.println("Loaded Texture "+filename);
+				}
 			}
-			System.out.println("Loaded Texture "+filename);
 		}
-		System.out.println("Texture loading finished.");
+		if (editPanel != null) editPanel.particleEditPanel.loadTextureNames();
+		//System.out.println("Texture loading finished.");
 	}
 	
-	public Texture loadTexture(String filename) {
-		if (filename.length() >= 5) {
-			filename = filename.substring(0, filename.length()-4);
-			File file = new File(Main.TEXTURE_PATH+filename+".dds");
-			if (!file.exists()) file = new File(Main.TEXTURE_PATH+filename+".tga");
+	public Texture loadTexture(String fname, String pname) {
+		if (fname.length() >= 5) {
+			String filename = fname.substring(0, fname.length()-4);
+			File file = new File(Config.TextureFolder1+"/"+filename+".dds");
+			if (!file.exists()) file = new File(Config.TextureFolder1+"/"+filename+".tga");
+			if (!file.exists()) file = new File(Config.TextureFolder2+"/"+filename+".dds");
+			if (!file.exists()) file = new File(Config.TextureFolder2+"/"+filename+".tga");
 			try {
 				BufferedImage image = ImageIO.read(file);
 				TextureLoader loader = new TextureLoader(image);
@@ -152,7 +160,7 @@ public class Renderer {
 				texture.setBoundaryModeT(Texture.WRAP);
 				return texture;
 			} catch (IOException e) {
-				System.out.println("Couldn't read file: "+filename);
+				System.out.println("PS '"+pname+"': Couldn't read file: "+fname);
 			}
 		}
 		return null;
@@ -191,7 +199,14 @@ public class Renderer {
 		//Set up Objects
 		Appearance ap = new Appearance();
 		ap.setColoringAttributes(new ColoringAttributes(0.5f, 0.6f, 0.1f, ColoringAttributes.NICEST));
-		ap.setTexture(loadTexture("TLGras01a.tga"));
+		//ap.setTexture(loadTexture("TLGras01a.tga"));
+		try {
+			ap.setTexture(new TextureLoader(ImageIO.read(new File("ground.jpg"))).getTexture());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
 		ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
 		RenderingAttributes ra = new RenderingAttributes();
 		ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
@@ -241,7 +256,9 @@ public class Renderer {
 		mainWindow = new MainWindow(this);
         //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//frame.setLayout(new BorderLayout());
-        mainWindow.setSize(1024, 768);
+        mainWindow.setSize(Config.WindowWidth, Config.WindowHeigth);
+        if (Config.Fullscreen) mainWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
+        
         canvas.setMinimumSize(new Dimension(800, 600));
 
 		// create the status bar panel and shove it down the bottom of the frame
@@ -251,6 +268,7 @@ public class Renderer {
 		statusPanel.setPreferredSize(new Dimension(mainWindow.getWidth(), 24));
 
 		editPanel = new EditPanel(this);
+		editPanel.setPreferredSize(new Dimension(315, 0));
 		browsePanel = new BrowsePanel(this);
 		browsePanel.browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
     
@@ -346,5 +364,35 @@ public class Renderer {
 
 	public boolean isInParticleMode() {
 		return this.browsePanel.getActiveTab().getTpane_browse().getSelectedIndex()==1;
+	}
+
+	/**
+	 * This is called when a list item in the browse tab is selected
+	 * This changes the active FX type and updates all necessary elements
+	 */
+	public void updateActiveFX(FXListType type, String name) {
+		Main.activeFXListType = type;
+		if (type.isTemporary()) {
+			editPanel.setFXTextAuto("<"+name+">");
+			editPanel.setFXEditsEnabled(false);
+		}else {
+			editPanel.setFXTextAuto(name);
+			editPanel.setFXEditsEnabled(true);
+		}
+		editPanel.updateFXGUI();
+		if (type.isTemporary()) {
+			editPanel.cb_ParticleSystems.setSelectedItem(name);
+		}
+		editPanel.updateFXCode();
+	}
+
+	/**
+	 * This changes the active ParticleSystem type and updates all necessary elements
+	 */
+	public void updateActiveParticle(ParticleSystemType type,
+			String name) {
+		Main.activeParticleSystemType = type;
+		editPanel.updateParticleGUI();
+		editPanel.updateParticleCode();
 	}
 }

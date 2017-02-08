@@ -61,23 +61,25 @@ public class FXList extends Entity{
 	
 	public void preLoadParticleSystem(ParticleSystemEntry entry) {
 		ParticleSystemType p_type = Main.getParticleSystem(entry.Name);
-		for (int i = 0; i < entry.Count; i++) {
-			int spawnDelay = (int) ((float)MathUtil.getRandomInt(entry.InitialDelay) / 33.333f);
-			ParticleSystem psys = new ParticleSystem(p_type, spawnDelay);
-			Vector3d position = this.getPosition();
-			position.add(new Vector3d(entry.Offset[0], entry.Offset[1], entry.Offset[2]));
-			float r = MathUtil.getRandomFloat(entry.Radius);
-			if (r != 0.0f) {
-				Vector2f xyOffset = MathUtil.getPolarOffset((float) MathUtil.randomAngleRad(), r);
-				position.x += xyOffset.x;
-				position.y += xyOffset.y;
+		if (type != null) {
+			for (int i = 0; i < entry.Count; i++) {
+				int spawnDelay = (int) ((float)MathUtil.getRandomInt(entry.InitialDelay) / 33.333f);
+				ParticleSystem psys = new ParticleSystem(p_type, spawnDelay);
+				Vector3d position = this.getPosition();
+				position.add(new Vector3d(entry.Offset[0], entry.Offset[1], entry.Offset[2]));
+				float r = MathUtil.getRandomFloat(entry.Radius);
+				if (r != 0.0f) {
+					Vector2f xyOffset = MathUtil.getPolarOffset((float) MathUtil.randomAngleRad(), r);
+					position.x += xyOffset.x;
+					position.y += xyOffset.y;
+				}
+				float h = MathUtil.getRandomFloat(entry.Height);
+				if (h!= 0.0f) position.z += h;
+				psys.setPosition(position);
+		
+				engine.addEntity(psys);
+				psys.init(engine);
 			}
-			float h = MathUtil.getRandomFloat(entry.Height);
-			if (h!= 0.0f) position.z += h;
-			psys.setPosition(position);
-
-			engine.addEntity(psys);
-			psys.init(engine);
 		}
 	}
 

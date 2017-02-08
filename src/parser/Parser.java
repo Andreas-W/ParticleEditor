@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Scanner;
 
+import util.Util;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.posEntry;
@@ -40,27 +41,27 @@ public class Parser {
 							//System.out.println(next);
 							parseToken(next, type, sc);
 							if (errors.size() > 0) {
-								log.append(name).append("\n");
+								log.append("PS: '"+name+"': ");
 								for (String s : errors) {
-									log.append("  ").append(s).append("\n");
+									log.append(s).append("\n");
 								}
-								log.append("---\n");
 								errors.clear();
 							}
 						} catch (IllegalArgumentException
 								| IllegalAccessException e) {
-							log.append("could not parse token '"+ next+"'\n");
+							log.append("PS: '"+name+"': could not parse token '"+ next+"'\n");
 						}
 					}
 				}
 				particleSystemTypes.put(name, type);
-				System.out.println("Added ParticleSystem "+name);
+				//System.out.println("Added ParticleSystem "+name);
 			}
 		}
 		
 		sc.close();
-		System.out.println("ParticleSystem loading finished.");
-		System.out.println(log.toString());
+		Util.printToLog(log.toString());
+//		System.out.println("ParticleSystem loading finished.");
+//		System.out.println(log.toString());
 	}
 	
 	private static void parseToken(String token, Object type, Scanner sc) throws IllegalArgumentException, IllegalAccessException {
@@ -159,16 +160,16 @@ public class Parser {
 									try {
 										parseToken(next, entry, sc);
 										if (errors.size() > 0) {
-											log.append(name).append("\n");
+											log.append("FX: '"+name+"': ");
 											for (String s : errors) {
-												log.append("  ").append(s).append("\n");
+												log.append(s).append("\n");
 											}
-											log.append("---\n");
+											//log.append("---\n");
 											errors.clear();
 										}
 									} catch (IllegalArgumentException
 											| IllegalAccessException e) {
-										log.append("could not parse token '"+ next+"'\n");
+										log.append("FX '"+name+"': could not parse token '"+ next+"'\n");
 									}
 								}
 							}
@@ -184,14 +185,15 @@ public class Parser {
 					}
 				}
 				FXListTypes.put(name, type);
-				System.out.println("Added FXList "+name);
+				//System.out.println("Added FXList "+name);
 			}
 
 		}
 		
 		sc.close();
-		System.out.println("FXList loading finished.");
-		System.out.println(log.toString());
+		//System.out.println("FXList loading finished.");
+		Util.printToLog(log.toString());
+		//System.out.println(log.toString());
 	}
 	//----------------
 	
@@ -264,6 +266,7 @@ public class Parser {
 		boolean eof = false;
 		while (sc.hasNextLine() && !eof) {
 			if (sc.hasNext()) next = sc.next();
+			else eof = true;
 			if (next.equals("")) eof = true;
 			try {
 				parseToken(next, type, sc);

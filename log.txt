@@ -1,0 +1,28 @@
+2017/02/08 16:23:05
+PS: 'TankStruckFlameSlave': could not parse token 'VolumeType'
+PS: 'Demo_BombTruckDefaultLenzFlare': could not parse token 'Type'
+PS: 'BombTruckDefaultLenzFlare': could not parse token 'Type'
+PS: 'CarCrushGlassDebris': could not parse token 'Shader'
+PS: 'CarCrushGlassDebris': could not parse token 'Type'
+PS: 'GiantLenzflareMonkey': could not parse token 'Type'
+PS: 'MicrowaveLenzflare': could not parse token 'Type'
+PS: 'IonTankExplosionTrailFlare': could not parse token 'Type'
+PS: 'DGModExplosionFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
+PS: 'DG_MOD_NewNukeEffectFireballz_FlamwaveZ': BurstCount: Failed to parse int value.
+PS: 'ParticleUplinkExplosionEnergyFlares': could not parse token 'Type'
+PS: 'SparkleExplosionVOLUME': could not parse token 'Type'
+PS: 'ParticleEnergyFlaresX2': could not parse token 'Type'
+PS: 'FireNukeFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
+PS: 'ZGen_DGModExplosionFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
+PS: 'BombTruckDefaultLenzFlare_Blue': could not parse token 'Type'
+PS: 'FOABExplosionFlash': could not parse token 'Type'
+PS: 'AuroraBombExplosionFlash': could not parse token 'Type'
+PS: 'FlameThrowerTrail05': could not parse token 'Shader'
+PS: 'FlameThrowerTrail05Red': could not parse token 'Shader'
+
+FX: 'FX_AmericaWarFactoryDeathFinal': Offset: Failed to parse float value.
+FX: 'FX_HydrogenBomb': Offset: Failed to parse float value.
+FX: 'FX_HydrogenBomb': Offset: Failed to parse float value.
+FX: 'FX_ZSupW_AntiMatterBomb': Offset: Failed to parse float value.
+FX: 'FX_ZSupW_AntiMatterBomb': Offset: Failed to parse float value.
+

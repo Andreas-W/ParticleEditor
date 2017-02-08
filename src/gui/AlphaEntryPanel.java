@@ -92,6 +92,9 @@ public class AlphaEntryPanel extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				renderer.editPanel.particleEditPanel.newAlphaEntry(aEntry);
 				renderer.editPanel.particleEditPanel.updateAlphaPanels();
+				renderer.editPanel.particleEditPanel.alphaEntriesFromList();
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		
@@ -107,6 +110,9 @@ public class AlphaEntryPanel extends JPanel {
 				renderer.editPanel.particleEditPanel.panel_AlphaEntries.remove(AlphaEntryPanel.this);
 				renderer.editPanel.particleEditPanel.removeAlphaEntry(aEntry);
 				renderer.editPanel.particleEditPanel.updateAlphaPanels();
+				renderer.editPanel.particleEditPanel.alphaEntriesFromList();
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel_23.add(btn_Remove);
@@ -121,6 +127,8 @@ public class AlphaEntryPanel extends JPanel {
 		btn_moveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				renderer.editPanel.particleEditPanel.moveAlphaEntry(AlphaEntryPanel.this, -1);
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel.add(btn_moveUp, BorderLayout.NORTH);
@@ -132,6 +140,8 @@ public class AlphaEntryPanel extends JPanel {
 		btn_moveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				renderer.editPanel.particleEditPanel.moveAlphaEntry(AlphaEntryPanel.this, 1);
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel.add(btn_moveDown, BorderLayout.SOUTH);

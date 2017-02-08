@@ -1,3 +1,17 @@
+FXList FXRibbonTester
+  ParticleSystem
+    Name = TestParticleRibbonTester1
+	Offset = X:0.0 Y:0.0 Z:10.0
+  End
+End
+
+FXList 00TestFXColors
+  ParticleSystem
+    Name = TestParticleColors
+    Height = 30 30 UNIFORM
+  End
+End
+
 FXList 0TestFXUP
   ParticleSystem
     Name = TestParticleUp

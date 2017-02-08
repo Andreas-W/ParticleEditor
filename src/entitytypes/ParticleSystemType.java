@@ -205,6 +205,16 @@ public class ParticleSystemType {
 		public boolean isZero() {
 			return x == 0 && y == 0 && z == 0;
 		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof posEntry) {
+				posEntry o = (posEntry)obj;
+				return x == o.x && y == o.y && z == o.z;
+			}else {
+				return false;
+			}
+		}
 	}
 	
 	public class colorEntry implements Cloneable {

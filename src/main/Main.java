@@ -3,26 +3,31 @@ package main;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+import javax.swing.JFrame;
+import javax.swing.JWindow;
 
 import entities.FXList;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
 import entitytypes.FXListType.ParticleSystemEntry;
+import gui.MainWindow;
 import parser.Parser;
 import util.Util;
 
 public class Main {
-	
-	public static final String TEXTURE_PATH = "./textures/";
+
+	public static final String configFilePath = "./config.properties";
 
 	public static int FPS = 30; //30;
 	public static HashMap<String, ParticleSystemType> ParticleSystemTypes = new HashMap<String, ParticleSystemType>();
@@ -39,16 +44,23 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
+		Config.readConfigFile(configFilePath);
+		
 		Locale.setDefault(Locale.US);
 		
+		 JWindow w = Util.showLoadingWindow(null);
+		
 		//boolean loaded = loadFiles("C:/Games/Command & Conquer Generalz GIT/Data/INI/ParticleSystem.ini", "C:/Games/Command & Conquer Generalz GIT/Data/INI/FXList.ini");
-		boolean loaded = loadFiles("testparticle.txt", "testFX.txt");
+		boolean loaded = loadFiles(Config.ParticleSystemFile, Config.FXListFile);
 		
 		if (loaded) {
 
 			final Renderer renderer = new Renderer();
-			renderer.loadTextures();
+			//renderer.loadTextures();
 			
+			w.setVisible(false);
+			w.dispose();
+			renderer.mainWindow.toFront();
 
 			//engine.repeat = false;
 			Thread looper = new Thread(new Runnable() {			
@@ -115,6 +127,9 @@ public class Main {
 	
 	public static boolean loadFiles(String particleSystems, String FXLists) {
 		try {
+			ParticleSystemTypes = new HashMap<String, ParticleSystemType>();
+			FXListTypes = new HashMap<String, FXListType>();
+			
 			Parser.parseParticleSystemINI(particleSystems, ParticleSystemTypes);
 			Parser.parseFXListINI(FXLists, FXListTypes);
 			

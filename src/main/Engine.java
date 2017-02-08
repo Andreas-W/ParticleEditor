@@ -10,6 +10,7 @@ import util.Util;
 import entities.Entity;
 import entities.FXList;
 import entities.Particle;
+import entities.ParticleEntity;
 import entities.ParticleSystem;
 
 
@@ -107,7 +108,7 @@ public class Engine extends Thread {
 		//renderer.sceneGroup.removeChild(renderer.particleGroup);
 		
 		for (Entity entity : entities) {
-			if (entity instanceof Particle) c_part++;
+			if (entity instanceof ParticleEntity) c_part++;
 			else if (entity instanceof ParticleSystem) c_sys++;
 			else if (entity instanceof FXList) c_fx++;
 

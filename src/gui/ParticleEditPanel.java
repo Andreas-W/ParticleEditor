@@ -33,6 +33,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 
+import main.Config;
 import main.Main;
 import main.Renderer;
 import entitytypes.ParticleSystemType;
@@ -98,7 +99,7 @@ public class ParticleEditPanel extends JPanel {
 	
 	private JComboBox cbParticleType;
 	private JComboBox cbShader;
-	private JComboBox cbTexture;
+	public JComboBox cbTexture;
 	private JButton btnTexAdd;
 	private ValueTextField tfAngleZMin;
 	private ValueTextField tfAngleZMax;
@@ -192,9 +193,8 @@ public class ParticleEditPanel extends JPanel {
 		particleValuesChangedListener = new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent e) {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
-				if (e.getPropertyName().equals("value") && Main.activeParticleSystemType != null && !ignoreChanges) {
+				if (!e.getNewValue().equals(e.getOldValue()) && e.getPropertyName().equals("value") && Main.activeParticleSystemType != null && !ignoreChanges) {
 					updateParticleValues();
-					renderer.editPanel.FXvaluesChanged();
 					renderer.mainWindow.reset = true;
 				}
 			}
@@ -204,7 +204,6 @@ public class ParticleEditPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				if (Main.activeParticleSystemType != null && !ignoreChanges) {
 					updateParticleValues();
-					renderer.editPanel.FXvaluesChanged();
 					//renderer.mainWindow.reset = true;
 				}
 			}
@@ -235,8 +234,8 @@ public class ParticleEditPanel extends JPanel {
 								Main.updateParticleSystemNames();
 								fillParticleLists();
 								((JComboBox)e.getSource()).setSelectedItem(pname);
-								updateParticleValues();
-								renderer.editPanel.selectionChanged();
+								//updateParticleValues();
+								renderer.updateActiveParticle(ptype, pname);
 								ignoreChanges = false;
 							}else {
 								ignoreChanges = true;
@@ -244,8 +243,9 @@ public class ParticleEditPanel extends JPanel {
 								ignoreChanges = false;
 							}
 						}else {
-							updateParticleValues();
-							renderer.editPanel.selectionChanged();
+							//updateParticleValues();
+							renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
+							//renderer.editPanel.selectionChanged();
 							renderer.mainWindow.reset = true;
 						}
 					}
@@ -307,6 +307,7 @@ public class ParticleEditPanel extends JPanel {
 					String name = (String) cbTexture.getSelectedItem();
 					ParticleSystemType type = Main.activeParticleSystemType;
 					type.ParticleName = name+".tga";
+					renderer.editPanel.particleEditPerformed();
 					renderer.mainWindow.reset = true;
 					renderer.texturePreview.setVisible(false);
 				}
@@ -878,50 +879,50 @@ public class ParticleEditPanel extends JPanel {
 		JPanel panel_Slave = new JPanel();
 		panel_Slave.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		add(panel_Slave);
-		panel_Slave.setLayout(new BorderLayout(0, 0));
+		panel_Slave.setLayout(new BoxLayout(panel_Slave, BoxLayout.Y_AXIS));
 		
 		JPanel panel_16 = new JPanel();
 		FlowLayout flowLayout_9 = (FlowLayout) panel_16.getLayout();
 		flowLayout_9.setAlignment(FlowLayout.LEFT);
-		panel_Slave.add(panel_16, BorderLayout.NORTH);
+		panel_Slave.add(panel_16);
 		
 		chAttachedSystem = new JCheckBox("");
 		panel_16.add(chAttachedSystem);
 		
-		JLabel lblAttachedsystem = new JLabel("Attach:");
+		JLabel lblAttachedsystem = new JLabel("Attached System:");
 		panel_16.add(lblAttachedsystem);
 		
 		cbAttachedSystem = new JComboBox();
-		cbAttachedSystem.setFont(new Font("Tahoma", Font.PLAIN, 10));
+		panel_Slave.add(cbAttachedSystem);
+		cbAttachedSystem.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		cbAttachedSystem.setEnabled(false);
 		cbAttachedSystem.setEditable(true);
-		cbAttachedSystem.setPreferredSize(new Dimension(198,22));
+		cbAttachedSystem.setPreferredSize(new Dimension(275,22));
 		cbAttachedSystem.addItemListener(particleSystemSelectListener);
-		panel_16.add(cbAttachedSystem);
 		
 		JPanel panel_17 = new JPanel();
 		FlowLayout flowLayout_12 = (FlowLayout) panel_17.getLayout();
 		flowLayout_12.setAlignment(FlowLayout.LEFT);
-		panel_Slave.add(panel_17, BorderLayout.CENTER);
+		panel_Slave.add(panel_17);
 		
 		chSlavedSystem = new JCheckBox("");
 		panel_17.add(chSlavedSystem);
 		
-		JLabel lblSlaved = new JLabel("Slaved:");
+		JLabel lblSlaved = new JLabel("Slaved System:");
 		panel_17.add(lblSlaved);
 		
 		cbSlavedSystem = new JComboBox();
-		cbSlavedSystem.setFont(new Font("Tahoma", Font.PLAIN, 10));
+		panel_Slave.add(cbSlavedSystem);
+		cbSlavedSystem.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		cbSlavedSystem.setEnabled(false);
 		cbSlavedSystem.setEditable(true);
-		cbSlavedSystem.setPreferredSize(new Dimension(198,22));
+		cbSlavedSystem.setPreferredSize(new Dimension(275,22));
 		cbSlavedSystem.addItemListener(particleSystemSelectListener);
-		panel_17.add(cbSlavedSystem);
 		
 		JPanel panel_18 = new JPanel();
 		FlowLayout flowLayout_13 = (FlowLayout) panel_18.getLayout();
 		flowLayout_13.setAlignment(FlowLayout.LEFT);
-		panel_Slave.add(panel_18, BorderLayout.SOUTH);
+		panel_Slave.add(panel_18);
 		
 		JLabel lblNewLabel_3 = new JLabel("Slave Offset");
 		panel_18.add(lblNewLabel_3);
@@ -972,7 +973,7 @@ public class ParticleEditPanel extends JPanel {
 		flowLayout_8.setAlignment(FlowLayout.LEFT);
 		panel_Misc.add(panel_15, BorderLayout.SOUTH);
 		
-		chckbxEmitAboveGround = new JCheckBox("EmitAboveGround");
+		chckbxEmitAboveGround = new JCheckBox("EmitAboveGroundOnly");
 		chckbxEmitAboveGround.setFont(new Font("Tahoma", Font.PLAIN, 9));
 		panel_15.add(chckbxEmitAboveGround);
 		
@@ -1072,6 +1073,7 @@ public class ParticleEditPanel extends JPanel {
 					} else if (e.getStateChange() == ItemEvent.SELECTED) {
 						copyVelValues(velPrev, (e_VelocityType)e.getItem());
 						Main.activeParticleSystemType.VelocityType = (e_VelocityType)e.getItem();
+						renderer.editPanel.particleEditPerformed();
 						insertGuiValues();
 					}
 				}
@@ -1082,6 +1084,7 @@ public class ParticleEditPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
 					Main.activeParticleSystemType.VolumeType = (e_VolumeType)e.getItem();
+					renderer.editPanel.particleEditPerformed();
 					insertGuiValues();
 				}
 			}
@@ -1191,7 +1194,7 @@ public class ParticleEditPanel extends JPanel {
 		}
 		
 	}
-	private void loadTextureNames() {
+	public void loadTextureNames() {
 		ignoreChanges = true;
 		cbTexture.removeAllItems();
 		ArrayList<String> names = new ArrayList<String>();
@@ -1301,18 +1304,19 @@ public class ParticleEditPanel extends JPanel {
 		colorEntriesFromList();
 	}
 	
-	public void loadValues() {
-		if(cbTexture.getItemCount() == 0 && renderer.TextureMap.size() != 0) {
-			loadTextureNames();
-		}
-		//loadCode();
-		insertGuiValues();
-	}
+//	public void loadValues() {
+//		
+//		//loadCode();
+//		insertGuiValues();
+//	}
 //	private void loadCode() {
 //		// TODO Auto-generated method stub
 //		
 //	}
-	private void insertGuiValues() {
+	public void insertGuiValues() {
+		if(cbTexture.getItemCount() == 0 && renderer.TextureMap.size() != 0) {
+			loadTextureNames();
+		}		
 		ignoreChanges = true;
 		ParticleSystemType type = Main.activeParticleSystemType;
 		alphaEntriesToList();
@@ -1417,17 +1421,27 @@ public class ParticleEditPanel extends JPanel {
 		
 		if (type.PerParticleAttachedSystem != null && !type.PerParticleAttachedSystem.equals("")) {
 			cbAttachedSystem.setSelectedItem(type.PerParticleAttachedSystem);
+			cbAttachedSystem.setEnabled(true);
 			chAttachedSystem.setSelected(true);
 		}else {
 			chAttachedSystem.setSelected(false);
+			cbAttachedSystem.setEnabled(false);
 		}
 		if (type.SlaveSystem != null && type.SlavePosOffset != null && !type.SlaveSystem.equals("")) {
 			chSlavedSystem.setSelected(true);
+			cbSlavedSystem.setEnabled(true);
+			tfSlaveX.setEnabled(true);
+			tfSlaveY.setEnabled(true);
+			tfSlaveZ.setEnabled(true);
 			tfSlaveX.setValue(type.SlavePosOffset.x);
 			tfSlaveY.setValue(type.SlavePosOffset.y);
 			tfSlaveZ.setValue(type.SlavePosOffset.z);
 		}else {
 			chSlavedSystem.setSelected(false);
+			cbSlavedSystem.setEnabled(false);
+			tfSlaveX.setEnabled(false);
+			tfSlaveY.setEnabled(false);
+			tfSlaveZ.setEnabled(false);
 		}
 		
 		chckbxEmitAboveGround.setSelected(type.IsEmitAboveGroundOnly);
@@ -1530,6 +1544,7 @@ public class ParticleEditPanel extends JPanel {
 		type.VolSphereRadius = (float) tfVolSphereRadius.getValue();
 
 		renderer.editPanel.updateParticleCode();
+		renderer.editPanel.particleEditPerformed();
 	}
 	
 	
@@ -1588,7 +1603,7 @@ public class ParticleEditPanel extends JPanel {
 		
     	//Set up the file chooser.
         JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new File(Main.TEXTURE_PATH));
+        fc.setCurrentDirectory(new File(Config.TextureFolder1));
         FileFilter filter = new FileNameExtensionFilter(
         	    "Image files", ImageIO.getReaderFileSuffixes());
         fc.addChoosableFileFilter(filter);

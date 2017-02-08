@@ -35,6 +35,9 @@ public class VelocityTypes {
 	public static IVelocityType VEL_OUTWARD = new IVelocityType(){
 		@Override
 		public Vector3d getVelocity(ParticleSystem sys, Vector3d dir) {
+			if (!(Util.hasValues(sys.type.VelOutward) || Util.hasValues(sys.type.VelOutwardOther))) {
+				return new Vector3d(0,0,0);
+			}
 			Vector3d velocity = new Vector3d(0.0, 0.0, 0.0);
 			switch (sys.type.VolumeType) {
 			case CYLINDER:
@@ -43,10 +46,13 @@ public class VelocityTypes {
 				velocity.add(new Vector3d(0.0, 0.0, MathUtil.getRandomFloat(sys.type.VelOutwardOther)));
 				break;
 			case LINE:
+				if (sys.type.VolLineStart.equals(sys.type.VolLineEnd)) {
+					return new Vector3d(0,0,0);
+				}
 				Vector3d dir1 = new Vector3d();
 				Vector3d dir2 = new Vector3d();
 				Vector3d up = new Vector3d(0.0, 0.0, 1.0);
-				if (dir.dot(up) <= 0.01) {
+				if (dir.dot(up) <= 0.001) {
 					up = new Vector3d(0.0, 1.0, 0.0);
 				}			
 				dir1.cross(dir, up);
@@ -60,6 +66,7 @@ public class VelocityTypes {
 				velocity = MathUtil.randomDir();
 				break;
 			case BOX:
+				//System.out.println("Box: Dir.length="+dir.length());
 			case SPHERE:
 			default:
 				velocity = new Vector3d(dir);

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JScrollPane;
 import javax.swing.JList;
@@ -34,14 +35,17 @@ public class BrowsePanel extends JPanel {
 	private JPanel panel_All;
 	public JTabbedPane tpane_BrowsingSet;
 	private JPanel panel_Working;
-	private JButton btn_edit;
-	private JButton reload_files;
+	//private JButton btn_edit;
+	//private JButton reload_files;
 	
 	public BrowseTab browse_All;
 	public BrowseTab browse_Working;
-	private JButton btn_reload;
+	//private JButton btn_reload;
 	
-
+	public JButton btn_new;
+	public JButton btn_clone;
+	//public JButton btn_remove;
+	
 	/**
 	 * Create the panel.
 	 */
@@ -53,40 +57,115 @@ public class BrowsePanel extends JPanel {
 		add(tpane_BrowsingSet, BorderLayout.CENTER);
 		
 		JPanel panel_controls = new JPanel(new FlowLayout());
-		btn_edit = new JButton("Edit");
-		btn_edit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (getActiveTab().getTpane_browse().getSelectedIndex() == 1) {
-					String part = (String) getActiveTab().getA_lst_Particles().getSelectedValue();
-					if (part != null) {
-						ParticleSystemType ptype = Main.getParticleSystem(part);
-						if (ptype != null) {
-							Main.work_ParticleSystemTypes.put(part, ptype);
-						}
-					}
-				}else {
-					String fx = (String) getActiveTab().getA_lst_FX().getSelectedValue();
-					if (fx != null) {
-						FXListType ftype = Main.getFXList(fx);
-						if (ftype != null) {
-							Main.work_FXListTypes.put(fx, ftype);
-						}
-					}
-				}
-				browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
-				//renderer.editPanel.loadWorkingSet();
-			}
-		});
+//		btn_edit = new JButton("Edit");
+//		btn_edit.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent arg0) {
+//				if (getActiveTab().getTpane_browse().getSelectedIndex() == 1) {
+//					String part = (String) getActiveTab().getA_lst_Particles().getSelectedValue();
+//					if (part != null) {
+//						ParticleSystemType ptype = Main.getParticleSystem(part);
+//						if (ptype != null) {
+//							Main.work_ParticleSystemTypes.put(part, ptype);
+//						}
+//					}
+//				}else {
+//					String fx = (String) getActiveTab().getA_lst_FX().getSelectedValue();
+//					if (fx != null) {
+//						FXListType ftype = Main.getFXList(fx);
+//						if (ftype != null) {
+//							Main.work_FXListTypes.put(fx, ftype);
+//						}
+//					}
+//				}
+//				browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+//				//renderer.editPanel.loadWorkingSet();
+//			}
+//		});
 		
-		btn_reload = new JButton("Reload Files");
-		btn_reload.setEnabled(false);
+//		btn_reload = new JButton("Reload Files");
+//		btn_reload.setEnabled(false);
 //		btn_reload.addActionListener(new ActionListener() {
 //			public void actionPerformed(ActionEvent arg0) {
 //			
 //			}
 //		});
-		panel_controls.add(btn_reload);
-		panel_controls.add(btn_edit);
+		//panel_controls.add(btn_reload);
+		//panel_controls.add(btn_edit);
+		
+		btn_new = new JButton("new");
+		btn_clone = new JButton("clone");
+		panel_controls.add(btn_new);
+		panel_controls.add(btn_clone);
+		
+		btn_new.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (getActiveTab().isFxMode()) {
+					String name = JOptionPane.showInputDialog(BrowsePanel.this, "Create New FX with name:");
+					if (name != null && !name.equals("")) {
+						setIgnoreChanges(true);
+						FXListType type = new FXListType();
+						Main.FXListTypes.put(name, type);
+						Main.work_FXListTypes.put(name, type);
+						Main.updateFXListNames();
+						renderer.updateActiveFX(type, name);	
+						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+						setIgnoreChanges(false);
+					}
+				}else {
+					String name = JOptionPane.showInputDialog(BrowsePanel.this, "Create New ParticleSystem with name:");
+					if (name != null && !name.equals("")) {
+						setIgnoreChanges(true);
+						ParticleSystemType ptype = new ParticleSystemType();
+						Main.ParticleSystemTypes.put(name, ptype);
+						Main.work_ParticleSystemTypes.put(name, ptype);
+						Main.updateParticleSystemNames();
+						FXListType type = FXListType.getFXTypeFromParticle(name);
+						renderer.updateActiveFX(type, name);	
+						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+						setIgnoreChanges(false);
+					}
+				}
+			}
+		});
+		btn_clone.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (getActiveTab().isFxMode()) {
+					String o_name = (String) renderer.editPanel.txtFXName.getValue();
+					String name = JOptionPane.showInputDialog(BrowsePanel.this, "Clone FX '"+o_name+"', new name:");
+					if (name != null && !name.equals("")) {
+						setIgnoreChanges(true);
+						FXListType type = new FXListType(Main.activeFXListType);
+						Main.FXListTypes.put(name, type);
+						Main.work_FXListTypes.put(name, type);
+						Main.updateFXListNames();
+						renderer.updateActiveFX(type, name);
+						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+						setIgnoreChanges(false);
+					}
+				}else {
+					String o_name = (String) renderer.editPanel.cb_ParticleSystems.getSelectedItem();
+					String name = JOptionPane.showInputDialog(BrowsePanel.this, "Clone ParticleSystem '"+o_name+"', new name:");
+					if (name != null && !name.equals("")) {
+						setIgnoreChanges(true);
+						ParticleSystemType ptype = new ParticleSystemType(Main.getParticleSystem(o_name));
+						Main.ParticleSystemTypes.put(name, ptype);
+						Main.work_ParticleSystemTypes.put(name, ptype);
+						Main.updateParticleSystemNames();
+						FXListType type = FXListType.getFXTypeFromParticle(name);
+						renderer.updateActiveFX(type, name);	
+						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+						setIgnoreChanges(false);
+					}
+				}
+			}
+		});
+		
 		add(panel_controls, BorderLayout.NORTH);
 		
 		panel_All = new JPanel();
@@ -108,13 +187,18 @@ public class BrowsePanel extends JPanel {
 		if (this.tpane_BrowsingSet.getSelectedIndex() == 1) return browse_Working;
 		else return browse_All;
 	}
-	
-	public void updateSelection() {
-		boolean workingSet = (this.tpane_BrowsingSet.getSelectedIndex() == 1);
-		boolean particleMode = getActiveTab().getTpane_browse().getSelectedIndex() == 1;
-		
-		renderer.editPanel.setEditingEnabled(workingSet);
-		
+
+	public void setIgnoreChanges(boolean b) {
+		browse_All.ignoreChanges = b;
+		browse_Working.ignoreChanges = b;
 	}
+	
+//	public void updateSelection() {
+//		boolean workingSet = (this.tpane_BrowsingSet.getSelectedIndex() == 1);
+//		boolean particleMode = getActiveTab().getTpane_browse().getSelectedIndex() == 1;
+//		
+//		renderer.editPanel.setEditingEnabled(workingSet);
+//		
+//	}
 	
 }

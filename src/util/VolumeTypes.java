@@ -77,7 +77,7 @@ public class VolumeTypes {
 	};
 	
 	
-	public static IVolumeType VOL_LINE = new IVolumeType() {
+	public static IVolumeType VOL_BOX = new IVolumeType() {
 
 		@Override
 		public Vector3d getPosition(ParticleSystem sys, Vector3d dir) {
@@ -96,7 +96,7 @@ public class VolumeTypes {
 		
 	};
 	
-	public static IVolumeType VOL_BOX = new IVolumeType() {
+	public static IVolumeType VOL_LINE = new IVolumeType() {
 
 		@Override
 		public Vector3d getPosition(ParticleSystem sys, Vector3d dir) {

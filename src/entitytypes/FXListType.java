@@ -41,6 +41,22 @@ public class FXListType {
 		public boolean CreateAtGroundHeight = false;
 		public boolean Ricochet = false;		
 		
+		public ParticleSystemEntry(ParticleSystemEntry other) {
+			this.Name = other.Name;
+			this.OrientToObject = other.OrientToObject;
+			this.Offset = other.Offset.clone();
+			this.InitialDelay = other.InitialDelay.clone();
+			this.Count = other.Count;
+			this.Radius = other.Radius.clone();
+			this.Height = other.Height.clone();
+			this.UseCallersRadius = other.UseCallersRadius;
+			this.CreateAtGroundHeight = other.CreateAtGroundHeight;
+			this.Ricochet = other.Ricochet;
+		}
+
+		public ParticleSystemEntry() {
+		}
+
 		public String createCode() {
 			StringBuilder sb = new StringBuilder();
 			sb.append("ParticleSystem\n");
@@ -77,6 +93,21 @@ public class FXListType {
 				
 	}
 	
+	public FXListType(FXListType other) {
+		this.additionalEntries = other.additionalEntries;
+		this.temporary = false;
+		this.ParticleSystems = new ArrayList<FXListType.ParticleSystemEntry>();
+		for (ParticleSystemEntry entry : other.ParticleSystems) {
+			this.ParticleSystems.add(new ParticleSystemEntry(entry));
+		}
+	}
+
+	
+
+	public FXListType() {}
+
+
+
 	public String createInnerCode() {
 		StringBuilder sb = new StringBuilder();
 		for (ParticleSystemEntry entry : ParticleSystems) {

@@ -106,7 +106,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
 				if (e.getPropertyName().equals("value") && entry != null && !ignoreChanges) {
 					updateEntryValues();
-					renderer.editPanel.FXvaluesChanged();
+					renderer.editPanel.updateFXCode();
 					renderer.mainWindow.reset = true;
 				}
 			}
@@ -116,7 +116,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				if (entry != null && !ignoreChanges) {
 					updateEntryValues();
-					renderer.editPanel.FXvaluesChanged();
+					renderer.editPanel.updateFXCode();
 					//renderer.mainWindow.reset = true;
 				}
 			}
@@ -188,13 +188,17 @@ public class ParticleSystemEntryPanel extends JPanel {
 								Main.ParticleSystemTypes.put(pname, ptype);
 								entry.Name = pname;
 								Main.updateParticleSystemNames();
-								cb_particleName.removeAllItems();
-								fillParticleNames();
-								cb_particleName.setSelectedItem(pname);
-								ignoreChanges = false;
-								updateEntryValues();
+								//cb_particleName.removeAllItems();
+								//fillParticleNames();
+								//updateEntryValues();
 								//renderer.editPanel.FXvaluesChanged();
-								renderer.editPanel.selectionChanged();
+								//renderer.editPanel.selectionChanged();
+								//renderer.updateActiveParticle(ptype, pname);
+								//cb_particleName.setSelectedItem(pname);
+								renderer.editPanel.updateFXGUI();
+								renderer.editPanel.updateFXCode();
+								renderer.editPanel.fxEditPerformed();
+								ignoreChanges = false;
 								renderer.mainWindow.reset = true;
 							}else {
 								ignoreChanges = true;
@@ -202,8 +206,11 @@ public class ParticleSystemEntryPanel extends JPanel {
 								ignoreChanges = false;
 							}
 						}else {
-							updateEntryValues();
-							renderer.editPanel.selectionChanged();
+							entry.Name = (String)e.getItem();
+							renderer.editPanel.fxEditPerformed();
+							//renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
+							//updateEntryValues();
+							//renderer.editPanel.selectionChanged();
 							renderer.mainWindow.reset = true;
 						}
 					}else if (e.getStateChange() == ItemEvent.DESELECTED){
@@ -214,7 +221,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 		});
 		cb_particleName.setEditable(true);
 		cb_particleName.setMinimumSize(new Dimension(150, 20));
-		cb_particleName.setMaximumSize(new Dimension(250, 20));
+		cb_particleName.setPreferredSize(new Dimension(250, 20));
 		panel.add(cb_particleName);
 		
 		JPanel panel_4 = new JPanel();
@@ -388,6 +395,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 		entry.Offset[2] = (float) tf_Offset_Z.getValue();
 		entry.Radius[0] = (float) tf_RadiusMin.getValue();
 		entry.Radius[1] = (float) tf_RadiusMax.getValue();
+		renderer.editPanel.fxEditPerformed();
 	}
 
 	public void loadValues(ParticleSystemEntry entry) {

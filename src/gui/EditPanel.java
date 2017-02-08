@@ -8,6 +8,8 @@ import java.awt.GridBagConstraints;
 import java.util.ArrayList;
 
 import javax.swing.ComboBoxModel;
+import javax.swing.JFormattedTextField;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JEditorPane;
 import javax.swing.JComboBox;
@@ -39,13 +41,14 @@ import java.awt.GridBagLayout;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 import java.awt.Font;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class EditPanel extends JPanel {
 
 	
 	public Renderer renderer;
-	private JTextField txtFXName;
-	private JToggleButton tglbtn_renameFX;
+	public JFormattedTextField txtFXName;
 	private JEditorPane editor_FX;
 	private JEditorPane editor_Particle;
 	private JPanel panel_3;
@@ -53,9 +56,11 @@ public class EditPanel extends JPanel {
 	private JPanel panel_ParticleEntries;
 	private JButton btnParseCode;
 	private JButton btnReset;
-	private JComboBox cb_ParticleSystems;
+	public JComboBox cb_ParticleSystems;
 	public ParticleEditPanel particleEditPanel;
+	private JButton btnAddParticlesystem;
 	//private JComboBox<String> cb_FXLists;
+	private boolean ignoreChanges;
 	
 	/**
 	 * Create the panel.
@@ -75,6 +80,7 @@ public class EditPanel extends JPanel {
 		panel_fx.add(tabbedPane_1);
 		
 		scrollPane_ParticleEntries = new JScrollPane();
+		scrollPane_ParticleEntries.getVerticalScrollBar().setUnitIncrement(16);
 		tabbedPane_1.addTab("Edit Values", null, scrollPane_ParticleEntries, null);
 		
 		panel_3 = new JPanel();
@@ -83,28 +89,28 @@ public class EditPanel extends JPanel {
 		scrollPane_ParticleEntries.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane_ParticleEntries.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
-		JButton btnAddParticlesystem = new JButton("Add ParticleSystem");
+		btnAddParticlesystem = new JButton("Add ParticleSystem");
 		
 		panel_3.add(btnAddParticlesystem);
 		
 		panel_ParticleEntries = new JPanel();
 		scrollPane_ParticleEntries.setViewportView(panel_ParticleEntries);
 		panel_ParticleEntries.setLayout(new BoxLayout(panel_ParticleEntries, BoxLayout.Y_AXIS));
-		
-				
-				
-				btnAddParticlesystem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent arg0) {
-						ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry();
-						entry.Name = Main.ParticleSystemNames.get(0);
-						Main.activeFXListType.ParticleSystems.add(entry);
-						ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
-						panel_ParticleEntries.add(pse_panel);
-						selectionChanged();
-					}
-				});
+					
+		btnAddParticlesystem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry();
+				entry.Name = Main.ParticleSystemNames.get(0);
+				Main.activeFXListType.ParticleSystems.add(entry);
+				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
+				panel_ParticleEntries.add(pse_panel);
+				updateFXGUI();
+				fxEditPerformed();
+			}
+		});
 		
 		JScrollPane scrollPane_2 = new JScrollPane();
+		scrollPane_2.getVerticalScrollBar().setUnitIncrement(16);
 		tabbedPane_1.addTab("Edit Code", null, scrollPane_2, null);
 		
 		editor_FX = new JEditorPane();
@@ -117,7 +123,7 @@ public class EditPanel extends JPanel {
 		btnParseCode = new JButton("Parse Code");
 		btnParseCode.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				FXcodeChanged();
+				parseFXCode();
 			}
 		});
 		panel.add(btnParseCode);
@@ -125,7 +131,7 @@ public class EditPanel extends JPanel {
 		btnReset = new JButton("Reset");
 		btnReset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				FXvaluesChanged();
+				updateFXCode();
 			}
 		});
 		panel.add(btnReset);
@@ -133,13 +139,41 @@ public class EditPanel extends JPanel {
 		JPanel panel_2 = new JPanel();
 		panel_fx.add(panel_2, BorderLayout.NORTH);
 		
-		txtFXName = new JTextField();
-		txtFXName.setEditable(false);
-		panel_2.add(txtFXName);
-		txtFXName.setColumns(16);
+		txtFXName = new JFormattedTextField("");
+		txtFXName.setColumns(26);
+		txtFXName.addPropertyChangeListener(new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				//System.out.println("Event: PropertyName="+e.getPropertyName()+" OldV="+e.getOldValue()+" NewV="+e.getNewValue());
+				if (!ignoreChanges && e.getPropertyName().equals("value")) {
+					int result = JOptionPane.showConfirmDialog(EditPanel.this, "Rename FX '"+e.getOldValue()+"' to '"+e.getNewValue()+"'?");
+					if (result == JOptionPane.YES_OPTION) {
+						ignoreChanges = true;
+						FXListType type = Main.getFXList((String)e.getOldValue());
+						if (type != null) {
+							Main.FXListTypes.remove((String)e.getOldValue());
+							Main.FXListTypes.put((String)e.getNewValue(), type);
+							Main.updateFXListNames();
+							renderer.browsePanel.setIgnoreChanges(true);
+							renderer.browsePanel.browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+							renderer.browsePanel.browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+							renderer.updateActiveFX(type, (String)e.getNewValue());
+							renderer.browsePanel.setIgnoreChanges(false);
+							renderer.editPanel.fxEditPerformed();
+						}
+						ignoreChanges = false;
+					}else {
+						ignoreChanges = true;
+						txtFXName.setValue(e.getOldValue());
+						ignoreChanges = false;
+					}
+				}
+			}
+		});
 		
-		tglbtn_renameFX = new JToggleButton("Rename");
-		panel_2.add(tglbtn_renameFX);
+		txtFXName.setEditable(false);
+		
+		
+		panel_2.add(txtFXName);
 		
 //		cb_FXLists = new JComboBox<String>();
 //		panel_1.add(cb_FXLists, BorderLayout.NORTH);
@@ -152,11 +186,13 @@ public class EditPanel extends JPanel {
 		panel_particle.add(tabbedPane, BorderLayout.CENTER);
 		
 		JScrollPane scrollPane_pValues = new JScrollPane();
+		scrollPane_pValues.getVerticalScrollBar().setUnitIncrement(16);
 		tabbedPane.addTab("Edit Values", null, scrollPane_pValues, null);
 		particleEditPanel = new ParticleEditPanel(renderer);
 		scrollPane_pValues.setViewportView(particleEditPanel);
 		
 		JScrollPane scrollPane_pCode = new JScrollPane();
+		scrollPane_pCode.getVerticalScrollBar().setUnitIncrement(16);
 		tabbedPane.addTab("Edit Code", null, scrollPane_pCode, null);
 		
 		editor_Particle = new JEditorPane();
@@ -185,16 +221,19 @@ public class EditPanel extends JPanel {
 		cb_ParticleSystems = new JComboBox();
 		cb_ParticleSystems.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				if (cb_ParticleSystems.getSelectedIndex() != -1) {
+				if (e.getStateChange() == ItemEvent.SELECTED && cb_ParticleSystems.getSelectedIndex() != -1) {
 					String pName = (String) cb_ParticleSystems.getSelectedItem();
-					Main.activeParticleSystemType = Main.getParticleSystem(pName);
-					particleEditPanel.loadValues();
+					ParticleSystemType ptype = Main.getParticleSystem(pName);
+					if (ptype != null) {
+						renderer.updateActiveParticle(ptype, pName);
+						//Main.activeParticleSystemType = Main.getParticleSystem(pName);
+						//particleEditPanel.loadValues();
+					}
 				}
 			}
 		});
 		panel_particle.add(cb_ParticleSystems, BorderLayout.NORTH);
 
-		setEditingEnabled(true);
 	}
 	
 	public void particleEditPerformed() {
@@ -216,7 +255,7 @@ public class EditPanel extends JPanel {
 	public void fxEditPerformed() {
 		//TODO: Undo stack
 		if (!Main.activeFXListType.isTemporary()) {
-			String fName = (String)txtFXName.getText();
+			String fName = (String)txtFXName.getValue();
 			if (!Main.work_FXListTypes.containsKey(fName)) {
 				Main.work_FXListTypes.put(fName, Main.activeFXListType);
 				renderer.browsePanel.browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
@@ -224,87 +263,99 @@ public class EditPanel extends JPanel {
 		}
 	}
 
-	public void setEditingEnabled(boolean enabled) {
-		this.tglbtn_renameFX.setEnabled(enabled);
-		this.editor_FX.setEnabled(enabled);
-		this.editor_Particle.setEnabled(enabled);
-		//TODO: Add every edit control here
+	public void setFXEditsEnabled(boolean b) {
+		this.editor_FX.setEnabled(b);
+		this.btnParseCode.setEnabled(b);
+		this.btnReset.setEnabled(b);
+		this.btnAddParticlesystem.setEnabled(b);
+		this.txtFXName.setEditable(b);
 	}
 	
+//	public void selectionChanged() {
+//		
+//		panel_ParticleEntries.removeAll();
+//		FXListType type = Main.activeFXListType;
+//		if (type == null){
+//			System.out.println("Type ist null, why is this happening?");
+//			return;
+//		}
+//		updateFXCode();
+//		
+//		this.particleEditPanel.loadValues();
+//	}
 	
-	public void selectionChanged() {
+	public void updateFXGUI() {
 		cb_ParticleSystems.removeAllItems();
 		panel_ParticleEntries.removeAll();
 		FXListType type = Main.activeFXListType;
-		if (type == null){
-			System.out.println("Type ist null, why is this happening?");
-			return;
-		}
 		for (ParticleSystemEntry entry : type.ParticleSystems) {
-			entry.setVisible(true);
-			ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
-			panel_ParticleEntries.add(pse_panel);
-			//--
-			cb_ParticleSystems.addItem(entry.Name);
-			ParticleSystemType ptype = Main.getParticleSystem(entry.Name);
-			if (ptype.PerParticleAttachedSystem != null && !ptype.PerParticleAttachedSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.PerParticleAttachedSystem)) {
-				cb_ParticleSystems.addItem(ptype.PerParticleAttachedSystem);
+			if (Main.ParticleSystemTypes.containsKey(entry.Name)) {
+				entry.setVisible(true);
+				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
+				panel_ParticleEntries.add(pse_panel);
+				//--
+				cb_ParticleSystems.addItem(entry.Name);
+				ParticleSystemType ptype = Main.getParticleSystem(entry.Name);
+				if (ptype.PerParticleAttachedSystem != null && !ptype.PerParticleAttachedSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.PerParticleAttachedSystem)) {
+					cb_ParticleSystems.addItem(ptype.PerParticleAttachedSystem);
+				}
+				if (ptype.SlaveSystem != null && !ptype.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.SlaveSystem)) {
+					cb_ParticleSystems.addItem(ptype.SlaveSystem);
+				}	
 			}
-			if (ptype.SlaveSystem != null && !ptype.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.SlaveSystem)) {
-				cb_ParticleSystems.addItem(ptype.SlaveSystem);
-			}			
 		}
-		FXvaluesChanged();
-		
-		this.particleEditPanel.loadValues();
+	}
+	
+	public void updateParticleGUI() {
+		particleEditPanel.insertGuiValues();
 	}
 	
 	public void updateParticleCode() {
 		editor_Particle.setText(Main.activeParticleSystemType.createInnerCode());
-		particleEditPerformed();
 	}
 	
 	public void parseParticleCode() {
 		ParticleSystemType ptype = Parser.parseParticleSystemCode(this.editor_Particle.getText(), (String)cb_ParticleSystems.getSelectedItem());
 		Main.activeParticleSystemType = ptype;
-		particleEditPanel.loadValues();
+		particleEditPanel.insertGuiValues();
 		particleEditPerformed();
 	}
 	
-	public void FXvaluesChanged() {
+	public void updateFXCode() {
 		editor_FX.setText(Main.activeFXListType.createInnerCode());
-		fxEditPerformed();
 	}
 	
-	public void FXcodeChanged() {
+	public void parseFXCode() {
 		cb_ParticleSystems.removeAllItems();
-		FXListType type = Parser.parseFXListCode(this.editor_FX.getText(), this.txtFXName.getText());
+		FXListType type = Parser.parseFXListCode(this.editor_FX.getText(), (String)this.txtFXName.getValue());
 		Main.activeFXListType = type;
 		panel_ParticleEntries.removeAll();
 		//panel_ParticleEntries.updateUI();
 		for (ParticleSystemEntry entry : type.ParticleSystems) {
-			entry.setVisible(true);
-			ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
-			panel_ParticleEntries.add(pse_panel);
-			cb_ParticleSystems.addItem(entry.Name);
-			ParticleSystemType ptype = Main.getParticleSystem(entry.Name);
-			if (ptype.PerParticleAttachedSystem != null || !ptype.PerParticleAttachedSystem.equals("")) {
-				cb_ParticleSystems.addItem(ptype.PerParticleAttachedSystem);
-			}
-			if (ptype.SlaveSystem != null || !ptype.SlaveSystem.equals("")) {
-				cb_ParticleSystems.addItem(ptype.SlaveSystem);
+			if (Main.ParticleSystemTypes.containsKey(entry.Name)) {
+				entry.setVisible(true);
+				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
+				panel_ParticleEntries.add(pse_panel);
+				cb_ParticleSystems.addItem(entry.Name);
+				ParticleSystemType ptype = Main.getParticleSystem(entry.Name);
+				if (ptype.PerParticleAttachedSystem != null || !ptype.PerParticleAttachedSystem.equals("")) {
+					cb_ParticleSystems.addItem(ptype.PerParticleAttachedSystem);
+				}
+				if (ptype.SlaveSystem != null || !ptype.SlaveSystem.equals("")) {
+					cb_ParticleSystems.addItem(ptype.SlaveSystem);
+				}
 			}
 		}
 		fxEditPerformed();
 	}
 
+	public void setFXTextAuto(String text) {
+		ignoreChanges = true;
+		txtFXName.setValue(text);
+		ignoreChanges = false;
+	}
 	
-	public JTextField getTxtFXName() {
-		return txtFXName;
-	}
-	public JToggleButton getTglbtn_renameFX() {
-		return tglbtn_renameFX;
-	}
+	
 	public JEditorPane getEditor_FX() {
 		return editor_FX;
 	}
@@ -329,7 +380,7 @@ public class EditPanel extends JPanel {
 
 	public void removeParticleEntry(ParticleSystemEntry entry) {
 		Main.activeFXListType.ParticleSystems.remove(entry);
-		FXvaluesChanged();
+		updateFXCode();
 	}
 	
 }

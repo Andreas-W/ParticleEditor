@@ -19,25 +19,30 @@ public class ValueTextField extends JTextField{
 	
 	private int valueType = 0;
 	
+	private Object value = null;
+	
 	public ValueTextField(int valType) {
 		super();
 		this.valueType = valType;
 		this.setText("0");
+		verifyText();
 		
 		addActionListener(new AbstractAction() {
 			@Override
 		    public void actionPerformed(ActionEvent e)
 		    {
+				Object oldValue = value;
 		        verifyText();
-		        firePropertyChange("value", null, ValueTextField.this.getValue());
+		        firePropertyChange("value", oldValue, ValueTextField.this.getValue());
 		    }
 		});
 		
 		addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
+				Object oldValue = value;
 				verifyText();
-				firePropertyChange("value", null, ValueTextField.this.getValue());
+				firePropertyChange("value", oldValue, ValueTextField.this.getValue());
 			}			
 			@Override
 			public void focusGained(FocusEvent arg0) {}
@@ -48,9 +53,11 @@ public class ValueTextField extends JTextField{
 	private void verifyText() {
 		try {
 			if (valueType == VALUE_INT) {
-				setText(""+(int)(Float.parseFloat(getText())));
+				value = (int)(Float.parseFloat(getText())); 
+				setText(""+value);
 			}else if (valueType == VALUE_FLOAT) {
-				setText(Util.fmt(Float.parseFloat(getText())));
+				value = Float.parseFloat(getText());
+				setText(Util.fmt((float)value));
 			}
 		} catch (NumberFormatException ex) {
 			setText(""+0);
@@ -58,19 +65,22 @@ public class ValueTextField extends JTextField{
 	}
 
 	public Object getValue() {
-		if (valueType == VALUE_INT) {
-			return Integer.parseInt(getText());
-		}else if (valueType == VALUE_FLOAT) {
-			return Float.parseFloat(getText());
-		}
-		return 0;
+//		if (valueType == VALUE_INT) {
+//			return Integer.parseInt(getText());
+//		}else if (valueType == VALUE_FLOAT) {
+//			return Float.parseFloat(getText());
+//		}
+//		return 0;
+		return value;
 	}
 
 	public void setValue(int i) {
 		setText(""+i);
+		value = i;
 	}
 
 	public void setValue(float f) {
 		setText(Util.fmt(f));
+		value = f;
 	}
 }

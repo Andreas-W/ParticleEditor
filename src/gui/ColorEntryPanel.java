@@ -124,6 +124,9 @@ public class ColorEntryPanel extends JPanel {
 			public void actionPerformed(ActionEvent arg0) {
 				renderer.editPanel.particleEditPanel.newColorEntry(cEntry);
 				renderer.editPanel.particleEditPanel.updateColorPanels();
+				renderer.editPanel.particleEditPanel.colorEntriesFromList();
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		
@@ -139,6 +142,9 @@ public class ColorEntryPanel extends JPanel {
 				renderer.editPanel.particleEditPanel.panel_ColorEntries.remove(ColorEntryPanel.this);
 				renderer.editPanel.particleEditPanel.removeColorEntry(cEntry);
 				renderer.editPanel.particleEditPanel.updateColorPanels();
+				renderer.editPanel.particleEditPanel.colorEntriesFromList();
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel_23.add(btn_Remove);
@@ -153,6 +159,8 @@ public class ColorEntryPanel extends JPanel {
 		btn_moveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				renderer.editPanel.particleEditPanel.moveColorEntry(ColorEntryPanel.this, -1);
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel.add(btn_moveUp, BorderLayout.NORTH);
@@ -164,6 +172,8 @@ public class ColorEntryPanel extends JPanel {
 		btn_moveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				renderer.editPanel.particleEditPanel.moveColorEntry(ColorEntryPanel.this, 1);
+				renderer.editPanel.updateParticleCode();
+				renderer.editPanel.particleEditPerformed();
 			}
 		});
 		panel.add(btn_moveDown, BorderLayout.SOUTH);
