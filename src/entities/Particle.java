@@ -110,7 +110,7 @@ public class Particle extends ParticleEntity{
 		Transform3D trans = new Transform3D();
 		Transform3D scale = new Transform3D();
 		Vector3d transVector = MathUtil.toJ3DVec(this.getPosition());
-		double scalefactor = Math.max((double)this.Size * MathUtil.J3D_COORD_SCALE,0.001);
+		double scalefactor = Math.max((double)this.Size * (double)this.SlaveScale * MathUtil.J3D_COORD_SCALE,0.001);
 		trans.set(transVector);
 		scale.set(scalefactor);
 		trans.mul(scale);

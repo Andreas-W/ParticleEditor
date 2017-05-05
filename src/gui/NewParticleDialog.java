@@ -40,7 +40,7 @@ public class NewParticleDialog extends JDialog {
 	
 	int result = 0;
 	
-	public NewParticleDialog(Renderer rend, String name) {
+	public NewParticleDialog(Renderer rend, String name, String cloneFrom) {
 		this.renderer = rend;
 		setModal(true);
 		setBounds(100, 100, 443, 231);
@@ -83,7 +83,7 @@ public class NewParticleDialog extends JDialog {
 			FlowLayout flowLayout = (FlowLayout) panel.getLayout();
 			flowLayout.setAlignment(FlowLayout.LEFT);
 			cbParticleSystems = new JComboBox(Main.ParticleSystemNames.toArray());
-			cbParticleSystems.setEnabled(false);
+			
 			contentPanel.add(panel);
 			{
 				rbClone = new JRadioButton("Clone Existing");
@@ -105,7 +105,11 @@ public class NewParticleDialog extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						result = 1;
+						if (tfParticleName.getText() != null && !tfParticleName.getText().equals("")) {
+							result = 1;
+						}else {
+							result = 0;
+						}
 						setVisible(false);
 						dispose();
 					}
@@ -118,7 +122,7 @@ public class NewParticleDialog extends JDialog {
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						result = 1;
+						result = 0;
 						setVisible(false);
 						dispose();
 					}
@@ -126,6 +130,16 @@ public class NewParticleDialog extends JDialog {
 				cancelButton.setActionCommand("Cancel");
 				buttonPane.add(cancelButton);
 			}
+		}
+		if (!cloneFrom.equals("")) {
+			cbParticleSystems.setSelectedItem(cloneFrom);
+			cbParticleSystems.setEnabled(true);
+			rbClone.setSelected(true);
+			rbEmpty.setSelected(false);
+		}else {
+			cbParticleSystems.setEnabled(false);
+			rbClone.setSelected(false);
+			rbEmpty.setSelected(true);
 		}
 	}
 	

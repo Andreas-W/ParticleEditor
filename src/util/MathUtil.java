@@ -6,6 +6,8 @@ import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
+import entitytypes.FXListType.e_RandomType;
+
 public class MathUtil {
 	
 	public static final double J3D_COORD_SCALE = 0.01;
@@ -14,17 +16,22 @@ public class MathUtil {
 	
 	public static Random rand = new Random();
 	
+	
+//	public static int getRandomInt(int value1, int value2) {
+//		if (value1 == value2) return value1;
+//		int min, max;
+//		if (value2 >= value1) {
+//			min = value1;
+//			max = value2;
+//		}else {
+//			min = value2;
+//			max = value1;
+//		}
+//		return (min+rand.nextInt(max-min));
+//	}
+	
 	public static int getRandomInt(int value1, int value2) {
-		if (value1 == value2) return value1;
-		int min, max;
-		if (value2 >= value1) {
-			min = value1;
-			max = value2;
-		}else {
-			min = value2;
-			max = value1;
-		}
-		return (min+rand.nextInt(max-min));
+		return (int)getRandomFloat((float) value1, (float)value2);
 	}
 	
 	public static int getRandomInt(int[] values) {
@@ -35,6 +42,10 @@ public class MathUtil {
 	}
 	
 	public static float getRandomFloat(float value1, float value2) {
+		return getRandomFloat(value1, value2, e_RandomType.UNIFORM);
+	}
+	
+	public static float getRandomFloat(float value1, float value2, e_RandomType rtype) {
 		if (value1 == value2) return value1;
 		float min, max;
 		if (value2 >= value1) {
@@ -44,12 +55,24 @@ public class MathUtil {
 			min = value2;
 			max = value1;
 		}
-		return (min+rand.nextFloat()*(max-min));
+		switch (rtype) {
+			case GAUSSIAN:
+				return (float) (min+rand.nextGaussian()*(max-min));
+			default:
+				return (min+rand.nextFloat()*(max-min));
+		}
 	}
 	
 	public static float getRandomFloat(float[] values) {
 		if (values.length >= 2) {
-			return getRandomFloat(values[0], values[1]);
+			return getRandomFloat(values[0], values[1], e_RandomType.UNIFORM);
+		}
+		return 0;
+	}	
+	
+	public static float getRandomFloat(float[] values, e_RandomType rtype) {
+		if (values.length >= 2) {
+			return getRandomFloat(values[0], values[1], rtype);
 		}
 		return 0;
 	}
@@ -116,4 +139,5 @@ public class MathUtil {
 		float y = (float) (radius * Math.sin(angle));
 		return new Vector2f(x,y);
 	}
+
 }

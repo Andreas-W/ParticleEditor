@@ -159,8 +159,8 @@ public class StreakParticle extends ParticleEntity{
 	    Vector3d vec3 = new Vector3d(vec);
 	    Vector3d vec4 = new Vector3d(vec);
 	    
-	    vec3.scale(Math.max((double)this.prev.Size * MathUtil.J3D_COORD_SCALE,0.001));
-	    vec4.scale(Math.max((double)this.Size * MathUtil.J3D_COORD_SCALE,0.001));
+	    vec3.scale(Math.max((double)this.prev.Size * (double)this.prev.SlaveScale * MathUtil.J3D_COORD_SCALE,0.001));
+	    vec4.scale(Math.max((double)this.Size * (double)this.SlaveScale * MathUtil.J3D_COORD_SCALE,0.001));
 	    
 	    // compute vertices
 	    Vector3d v1 = new Vector3d(p1);

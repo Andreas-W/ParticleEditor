@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -23,6 +24,8 @@ import javax.media.j3d.Canvas3D;
 import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.ImageComponent;
+import javax.media.j3d.LineArray;
+import javax.media.j3d.LineStripArray;
 import javax.media.j3d.QuadArray;
 import javax.media.j3d.RenderingAttributes;
 import javax.media.j3d.Shape3D;
@@ -47,6 +50,7 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import util.MathUtil;
+import util.Util;
 import net.nikr.dds.DDSImageReader;
 import net.nikr.dds.DDSImageReaderSpi;
 
@@ -128,6 +132,7 @@ public class Renderer {
 	 * Load all textures used in currently loaded ParticleSystems
 	 */
 	public void loadTextures() {
+		//Load all currently used textures
 		for (String pname : Main.ParticleSystemTypes.keySet()) {
 			ParticleSystemType type = Main.ParticleSystemTypes.get(pname);
 			String filename = type.ParticleName;
@@ -141,8 +146,39 @@ public class Renderer {
 				}
 			}
 		}
+		if (Config.TextureLoadPattern != null && !Config.TextureLoadPattern.equals("")) {
+			loadTexturesFromDirMatching(new File(Config.TextureFolder1));
+			loadTexturesFromDirMatching(new File(Config.TextureFolder2));
+		}
+		
+		
 		if (editPanel != null) editPanel.particleEditPanel.loadTextureNames();
 		//System.out.println("Texture loading finished.");
+	}
+	
+	private void loadTexturesFromDirMatching(File dir) {
+		final String pattern = Config.TextureLoadPattern+"\\.((tga)|(TGA)|(dds)|(DDS))";		
+	    File[] files = dir.listFiles(new FilenameFilter() {
+	        @Override
+	        public boolean accept(File dir, String name) {
+	            return name.matches(pattern);
+	        }
+	    });
+	    for (File file : files) {
+	    	String fname = Util.getTrimmedFilename(file).toLowerCase();
+	    	if (!TextureMap.containsKey(fname)) {
+		    	try {
+					BufferedImage image = ImageIO.read(file);
+					TextureLoader loader = new TextureLoader(image);
+					Texture texture = loader.getTexture();
+					texture.setBoundaryModeS(Texture.WRAP);
+					texture.setBoundaryModeT(Texture.WRAP);
+					TextureMap.put(fname,  texture);
+				} catch (IOException e) {
+					Util.printToLog("Couldn't read texture file: "+fname);
+				}
+	    	}
+	    }
 	}
 	
 	public Texture loadTexture(String fname, String pname) {
@@ -160,7 +196,7 @@ public class Renderer {
 				texture.setBoundaryModeT(Texture.WRAP);
 				return texture;
 			} catch (IOException e) {
-				System.out.println("PS '"+pname+"': Couldn't read file: "+fname);
+				Util.printToLog("PS '"+pname+"': Couldn't read file: "+fname);
 			}
 		}
 		return null;
@@ -180,7 +216,7 @@ public class Renderer {
 		//SimpleUniverse universe = new SimpleUniverse();
 		canvas.getView().setMinimumFrameCycleTime(1000/60);
 		canvas.getView().setBackClipDistance(100.0);
-		background = new Background(new Color3f(Color.BLACK));
+		background = new Background(new Color3f(new Color(Config.BGColor)));
 		background.setApplicationBounds(new BoundingSphere(new Point3d(0,0,0), Double.MAX_VALUE));
 		background.setCapability(Background.ALLOW_COLOR_WRITE);
 
@@ -197,44 +233,20 @@ public class Renderer {
 		resetCamera();
 		//-------
 		//Set up Objects
+		ground = new Shape3D();
+		ground.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+		ground.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);
+		ground.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
 		Appearance ap = new Appearance();
 		ap.setColoringAttributes(new ColoringAttributes(0.5f, 0.6f, 0.1f, ColoringAttributes.NICEST));
-		//ap.setTexture(loadTexture("TLGras01a.tga"));
-		try {
-			ap.setTexture(new TextureLoader(ImageIO.read(new File("ground.jpg"))).getTexture());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		
 		ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
 		RenderingAttributes ra = new RenderingAttributes();
 		ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+		ap.setCapability(Appearance.ALLOW_TEXTURE_WRITE);
 		ap.setRenderingAttributes(ra);
+		ground.setAppearance(ap);
 		
-		
-		//int primflags = Primitive.GENERATE_NORMALS + Primitive.GENERATE_TEXTURE_COORDS; 
-		//Box groundBox = new Box(10.0f, 0.1f, 10.0f, primflags, ap);
-		QuadArray plane = new QuadArray (4, QuadArray.COORDINATES | QuadArray.TEXTURE_COORDINATE_2);
-		float s = 2.5f;
-		int t = 4; //texture repeats
-		plane.setCoordinate(3, new Point3f(-s, 0f, -s));
-		plane.setCoordinate(2, new Point3f(s, 0f, -s));
-		plane.setCoordinate(1, new Point3f(s, 0f, s));
-		plane.setCoordinate(0, new Point3f(-s, 0f, s));
-		plane.setTextureCoordinate(0, 3, new TexCoord2f(0, 0));
-		plane.setTextureCoordinate(0, 2, new TexCoord2f(t, 0));
-		plane.setTextureCoordinate(0, 1, new TexCoord2f(t, t));
-		plane.setTextureCoordinate(0, 0, new TexCoord2f(0, t));
-		
-//		Transform3D trans = new Transform3D();
-//		trans.setTranslation(new Vector3f(0.0f, -0.5f, 0.0f));
-//		TransformGroup tg = new TransformGroup(trans);
-//		tg.addChild(groundBox);
-		//Sphere sphere = new Sphere(0.5f);
-		//group.addChild(sphere);
-		ground = new Shape3D(plane, ap);
-		ground.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+		setupGround();
 		tgGround.addChild(ground);
 		tgGround.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		sceneGroup.addChild(tgGround);
@@ -252,6 +264,72 @@ public class Renderer {
 		universe.addBranchGraph(particleGroup);
 	}
 	
+	public void setupGround() {
+		
+		if (Config.GroundType == 1) { //Textured		
+			try {
+				String tex = Config.GroundTexture;			
+				ground.getAppearance().setTexture(new TextureLoader(ImageIO.read(new File(tex))).getTexture());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	
+			QuadArray plane = new QuadArray (4, QuadArray.COORDINATES | QuadArray.TEXTURE_COORDINATE_2);
+			float s = (float) (Config.GroundSize*MathUtil.J3D_COORD_SCALE*0.5f);
+			float t = (Config.GroundSize/Config.GroundResolution)*0.5f; //texture repeats
+			plane.setCoordinate(3, new Point3f(-s, 0f, -s));
+			plane.setCoordinate(2, new Point3f(s, 0f, -s));
+			plane.setCoordinate(1, new Point3f(s, 0f, s));
+			plane.setCoordinate(0, new Point3f(-s, 0f, s));
+			plane.setTextureCoordinate(0, 3, new TexCoord2f(0, 0));
+			plane.setTextureCoordinate(0, 2, new TexCoord2f(t, 0));
+			plane.setTextureCoordinate(0, 1, new TexCoord2f(t, t));
+			plane.setTextureCoordinate(0, 0, new TexCoord2f(0, t));
+			ground.removeAllGeometries();
+			ground.addGeometry(plane);
+		
+		}else if (Config.GroundType == 0) {
+			int num = (int)(((Config.GroundSize)/Config.GroundResolution)*0.5f);
+			int count = 8*num+4;
+			float maxDist = (float) (Config.GroundSize*MathUtil.J3D_COORD_SCALE*0.5);
+			float distance = maxDist/(float)num;
+			LineArray grid=new LineArray(count,LineArray.COORDINATES|LineArray.COLOR_3);
+			Color3f c = new Color3f(new Color(Config.GridColor));
+			
+			int i = 0;
+			for (int j = 0; j < num; j++) {
+				float f = (j+1) * distance;
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(f, 0.0f, maxDist));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(f, 0.0f, -maxDist));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(maxDist, 0.0f, f));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(-maxDist, 0.0f, f));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(-f, 0.0f, maxDist));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(-f, 0.0f, -maxDist));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(maxDist, 0.0f, -f));
+				grid.setColor(i, c);
+				grid.setCoordinate(i++, new Point3f(-maxDist, 0.0f, -f));
+			}
+			grid.setColor(count-2, c);
+			grid.setCoordinate(count-2, new Point3f(0, 0.0f, maxDist));
+			grid.setColor(count-1, c);
+			grid.setCoordinate(count-1, new Point3f(0, 0.0f, -maxDist));
+			grid.setColor(count-3, c);
+			grid.setCoordinate(count-3, new Point3f(maxDist, 0.0f, 0));
+			grid.setColor(count-4, c);
+			grid.setCoordinate(count-4, new Point3f(-maxDist, 0.0f, 0));
+			ground.removeAllGeometries();
+			ground.addGeometry(grid);
+		}
+
+	}
+
 	public void setupFrame() {
 		mainWindow = new MainWindow(this);
         //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -312,10 +390,10 @@ public class Renderer {
 
 		double pitch = 0.9163; // for 37.5° angle
 		double r = 3.50; //350.0
-		double x = r * Math.sin(pitch);
+		double z = r * Math.sin(pitch);
 		double y = r * Math.cos(pitch);
 		
-	    Point3d eye = new Point3d(x, y, 0);  
+	    Point3d eye = new Point3d(0, y, z);  
 	    Point3d center = new Point3d(0,0,0);
 	    Vector3d up = new Vector3d(0,1,0);
 	    viewingTransform.lookAt(eye, center, up);

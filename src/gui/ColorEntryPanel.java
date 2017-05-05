@@ -8,6 +8,7 @@ import java.awt.Insets;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,6 +20,7 @@ import javax.swing.colorchooser.ColorSelectionModel;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.alphaEntry;
 import entitytypes.ParticleSystemType.colorEntry;
+import main.Main;
 import main.Renderer;
 
 import java.awt.Font;
@@ -32,6 +34,10 @@ import javax.swing.JTextField;
 import java.awt.Color;
 
 import javax.swing.border.MatteBorder;
+
+import util.Undo;
+import util.Util;
+import util.Undo.OperationType;
 
 public class ColorEntryPanel extends JPanel {
 	
@@ -57,9 +63,16 @@ public class ColorEntryPanel extends JPanel {
 		valuesChangedListener = new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent e) {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
-				if (e.getPropertyName().equals("value") && cEntry != null && !ignoreChanges) {
+//				if (e.getPropertyName().equals("value") && cEntry != null && !ignoreChanges) {
+//					updateValues();
+////					renderer.editPanel.FXvaluesChanged();
+//					renderer.mainWindow.reset = true;
+//				}
+				if (e.getPropertyName().equals("value")  && !e.getNewValue().equals(e.getOldValue()) && e.getPropertyName().equals("value") && Main.activeParticleSystemType != null && !ignoreChanges) {
+					Undo.performParticleOperation("changed color value", OperationType.EDIT);
 					updateValues();
-//					renderer.editPanel.FXvaluesChanged();
+					renderer.editPanel.updateParticleCode();
+					renderer.editPanel.particleEditPerformed();
 					renderer.mainWindow.reset = true;
 				}
 			}
@@ -75,30 +88,25 @@ public class ColorEntryPanel extends JPanel {
 		add(lblColor);
 		
 		
-		btnColor = new JButton("");
+		btnColor = new JButton();
 		btnColor.setBorder(new MatteBorder(1, 1, 1, 1, (Color) new Color(0, 0, 0)));
+		btnColor.setFocusPainted(false);
+		btnColor.setContentAreaFilled(false);
+		btnColor.setOpaque(true);
 		btnColor.setMargin(new Insets(0,0,0,0));
 		btnColor.setPreferredSize(new Dimension(24,24));
 		btnColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JColorChooser jcol = new JColorChooser(btnColor.getBackground());
-				//Remove unncesseary tabs
-				AbstractColorChooserPanel[] panels = jcol.getChooserPanels();
-				for (AbstractColorChooserPanel accp : panels) {
-				   if(!(accp.getDisplayName().equals("HSV") || accp.getDisplayName().equals("RGB")) ) {
-				      jcol.removeChooserPanel(accp);
-				   } 
-				}
-				//---
-				JDialog jdia = JColorChooser.createDialog(ColorEntryPanel.this, "Choose Particle Color", true, jcol, null, null);
-				jdia.setVisible(true);
-				Color c = jcol.getColor();
-				if (c!= null) {
-					btnColor.setBackground(c);
+				Color oldColor = btnColor.getBackground();
+				Color col = Util.pickColor("Pick particle Color", oldColor);
+				if (col!= null && !col.equals(oldColor)) {
+					btnColor.setBackground(col);
+					updateValues();
+					renderer.editPanel.updateParticleCode();
+					renderer.editPanel.particleEditPerformed();
+//					renderer.editPanel.FXvaluesChanged();
+					renderer.mainWindow.reset = true;
 				}		
-				updateValues();
-//				renderer.editPanel.FXvaluesChanged();
-				renderer.mainWindow.reset = true;
 			}
 		});
 		add(btnColor);
@@ -122,11 +130,12 @@ public class ColorEntryPanel extends JPanel {
 		btn_Add = new JButton("+");
 		btn_Add.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				Undo.performParticleOperation("added Color entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.newColorEntry(cEntry);
 				renderer.editPanel.particleEditPanel.updateColorPanels();
-				renderer.editPanel.particleEditPanel.colorEntriesFromList();
+				//renderer.editPanel.particleEditPanel.colorEntriesFromList();
 				renderer.editPanel.updateParticleCode();
-				renderer.editPanel.particleEditPerformed();
+				renderer.editPanel.particleEditPerformed();				
 			}
 		});
 		
@@ -139,12 +148,14 @@ public class ColorEntryPanel extends JPanel {
 		btn_Remove = new JButton("-");
 		btn_Remove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("removed Color entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.panel_ColorEntries.remove(ColorEntryPanel.this);
 				renderer.editPanel.particleEditPanel.removeColorEntry(cEntry);
 				renderer.editPanel.particleEditPanel.updateColorPanels();
-				renderer.editPanel.particleEditPanel.colorEntriesFromList();
+				//renderer.editPanel.particleEditPanel.colorEntriesFromList();
 				renderer.editPanel.updateParticleCode();
 				renderer.editPanel.particleEditPerformed();
+				
 			}
 		});
 		panel_23.add(btn_Remove);
@@ -158,9 +169,11 @@ public class ColorEntryPanel extends JPanel {
 		btn_moveUp = new JButton("\u02C4");
 		btn_moveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("moved Color entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.moveColorEntry(ColorEntryPanel.this, -1);
 				renderer.editPanel.updateParticleCode();
 				renderer.editPanel.particleEditPerformed();
+				
 			}
 		});
 		panel.add(btn_moveUp, BorderLayout.NORTH);
@@ -171,9 +184,11 @@ public class ColorEntryPanel extends JPanel {
 		btn_moveDown = new JButton("\u02C5");
 		btn_moveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("moved Color entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.moveColorEntry(ColorEntryPanel.this, 1);
 				renderer.editPanel.updateParticleCode();
 				renderer.editPanel.particleEditPerformed();
+				
 			}
 		});
 		panel.add(btn_moveDown, BorderLayout.SOUTH);

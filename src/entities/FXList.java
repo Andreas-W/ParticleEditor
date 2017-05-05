@@ -63,18 +63,21 @@ public class FXList extends Entity{
 		ParticleSystemType p_type = Main.getParticleSystem(entry.Name);
 		if (type != null) {
 			for (int i = 0; i < entry.Count; i++) {
-				int spawnDelay = (int) ((float)MathUtil.getRandomInt(entry.InitialDelay) / 33.333f);
+				int spawnDelay = 0;
+				if (entry.InitialDelay != null) spawnDelay += (int) ((float)MathUtil.getRandomFloat(entry.InitialDelay.data[0], entry.InitialDelay.data[1], entry.InitialDelay.rtype) / 33.333f);
 				ParticleSystem psys = new ParticleSystem(p_type, spawnDelay);
 				Vector3d position = this.getPosition();
 				position.add(new Vector3d(entry.Offset[0], entry.Offset[1], entry.Offset[2]));
-				float r = MathUtil.getRandomFloat(entry.Radius);
-				if (r != 0.0f) {
+				if (entry.Radius != null) {
+					float r = MathUtil.getRandomFloat(entry.Radius.data, entry.Radius.rtype);
 					Vector2f xyOffset = MathUtil.getPolarOffset((float) MathUtil.randomAngleRad(), r);
 					position.x += xyOffset.x;
 					position.y += xyOffset.y;
 				}
-				float h = MathUtil.getRandomFloat(entry.Height);
-				if (h!= 0.0f) position.z += h;
+				if (entry.Height != null) {
+					float h = MathUtil.getRandomFloat(entry.Height.data, entry.Height.rtype);
+					position.z += h;
+				}
 				psys.setPosition(position);
 		
 				engine.addEntity(psys);

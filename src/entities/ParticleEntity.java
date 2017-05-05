@@ -37,6 +37,7 @@ public abstract class ParticleEntity extends Entity {
 	
 	public ParticleSystem AttachedSystem = null;
 	
+	public float SlaveScale = 1.0f; //Used for Particles from Slaved Systems
 	public float Size;
 	public float SizeRate;
 	public float SizeRateDamping;
@@ -51,7 +52,7 @@ public abstract class ParticleEntity extends Entity {
 	public float ParticleAlpha;
 	public Vector3f ParticleColor = new Vector3f(0,0,0);
 	
-	public int ColorScale;
+	public float ColorScale;
 	
 	private Vector3d offset;
 	private final Vector3d spawnPos;
@@ -132,9 +133,17 @@ public abstract class ParticleEntity extends Entity {
 		}
 		if (c1 == null) c1 = this.system.colors.get(this.system.colors.size()-1);
 		if (c2 == null) c2 = c1;
-		int csVal = this.ColorScale * this.timer;
+		float csVal = this.ColorScale * this.timer;
 		if (c1 != c2) {
-			float p = (float)(timer-c1.getKey()) / (float)(c2.getKey()-c1.getKey());		
+			float p = (float)(timer-c1.getKey()) / (float)(c2.getKey()-c1.getKey());
+
+			//TODO: NUMERICAL ERROR DETECTION!
+//			double mr = (c2.getValue().x/255.0 - c1.getValue().x/255.0)/(c2.getKey() - c1.getKey());
+//			if ((Math.abs(mr) <= 0.02)) {
+//				System.out.println("mr = "+mr);
+//			}
+			
+			
 //			//RGB to HSB
 //			float[] hsb1 = Color.RGBtoHSB((int)(c1.getValue().x), (int)(c1.getValue().y), (int)(c1.getValue().z), null);
 //			float[] hsb2 = Color.RGBtoHSB((int)(c2.getValue().x), (int)(c2.getValue().y), (int)(c2.getValue().z), null);	
@@ -198,13 +207,23 @@ public abstract class ParticleEntity extends Entity {
 		}
 		
 		this.AngularRateZ= MathUtil.getRandomFloat(system.type.AngularRateZ);
-		this.AngularDamping = MathUtil.getRandomFloat(system.type.AngularDamping);
-		this.VelocityDamping = MathUtil.getRandomFloat(system.type.VelocityDamping);
+		this.AngularDamping = MathUtil.getRandomFloat(system.type.AngularDamping);		
 		this.Lifetime = MathUtil.getRandomInt(system.type.Lifetime);
-		this.Size = MathUtil.getRandomFloat(system.type.Size) + startSize;
-		this.SizeRate = MathUtil.getRandomFloat(system.type.SizeRate);
-		this.SizeRateDamping = MathUtil.getRandomFloat(system.type.SizeRateDamping);
-		this.ColorScale = MathUtil.getRandomInt(system.type.ColorScale);
+		
+		this.ColorScale = MathUtil.getRandomFloat(system.type.ColorScale);
+		
+		if (this.system.master != null) {
+			this.Size = MathUtil.getRandomFloat(system.master.type.Size) + startSize;		
+			this.SlaveScale = MathUtil.getRandomFloat(system.type.Size);
+			this.VelocityDamping = MathUtil.getRandomFloat(system.master.type.VelocityDamping);
+			this.SizeRate = MathUtil.getRandomFloat(system.master.type.SizeRate);
+			this.SizeRateDamping = MathUtil.getRandomFloat(system.master.type.SizeRateDamping);
+		}else {
+			this.Size = MathUtil.getRandomFloat(system.type.Size) + startSize;		
+			this.VelocityDamping = MathUtil.getRandomFloat(system.type.VelocityDamping);
+			this.SizeRate = MathUtil.getRandomFloat(system.type.SizeRate);
+			this.SizeRateDamping = MathUtil.getRandomFloat(system.type.SizeRateDamping);
+		}
 		
 		//Corrections based on in-game behaviour of IsParticleUpTowardsEmitter. It's weird
 		if (system.type.IsParticleUpTowardsEmitter) {

@@ -20,7 +20,9 @@ import javax.swing.JFormattedTextField;
 
 import java.awt.FlowLayout;
 
+import javax.swing.JComponent;
 import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JMenu;
@@ -29,6 +31,7 @@ import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import javax.swing.JMenuBar;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,6 +43,9 @@ import javax.swing.JToggleButton;
 import main.Main;
 import main.Renderer;
 import entitytypes.FXListType.ParticleSystemEntry;
+import entitytypes.FXListType.ParticleSystemEntry.RandomFloatEntry;
+import entitytypes.FXListType.e_RandomType;
+import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
 
 import java.beans.PropertyChangeListener;
@@ -48,6 +54,9 @@ import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
 import javax.swing.ImageIcon;
+
+import util.Undo;
+import util.Undo.OperationType;
 
 import java.awt.Font;
 
@@ -82,6 +91,8 @@ public class ParticleSystemEntryPanel extends JPanel {
 	private boolean ignoreChanges = false; //used to temporarily disable changeListener
 	protected String prevParticleSelection;
 	private JButton btnDelete;
+	private JPopupMenu popupMenuView;
+	private JPopupMenu menu_particleName;
 
 	/**
 	 * Create the panel.
@@ -105,9 +116,13 @@ public class ParticleSystemEntryPanel extends JPanel {
 			public void propertyChange(PropertyChangeEvent e) {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
 				if (e.getPropertyName().equals("value") && entry != null && !ignoreChanges) {
+					String name = ((JComponent)e.getSource()).getName();
+					if (name == null) name = "changed unnamed value";
+					else name = "changed "+name;
+					Undo.performFXOperation(name, OperationType.EDIT);
 					updateEntryValues();
 					renderer.editPanel.updateFXCode();
-					renderer.mainWindow.reset = true;
+					renderer.mainWindow.reset = true;					
 				}
 			}
 		};
@@ -115,8 +130,10 @@ public class ParticleSystemEntryPanel extends JPanel {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (entry != null && !ignoreChanges) {
+					Undo.performFXOperation(((JCheckBox)e.getSource()).getText(), OperationType.EDIT);
 					updateEntryValues();
 					renderer.editPanel.updateFXCode();
+					
 					//renderer.mainWindow.reset = true;
 				}
 			}
@@ -132,7 +149,150 @@ public class ParticleSystemEntryPanel extends JPanel {
 		panel.setAlignmentY(Component.TOP_ALIGNMENT);
 		panel_pAttributes.add(panel);
 		
+		cb_particleName = new JComboBox(Main.ParticleSystemNames.toArray());
+		cb_particleName.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (entry != null && !ignoreChanges) {
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						entry.Name = (String)e.getItem();
+						renderer.editPanel.fxEditPerformed();
+						Undo.performFXOperation("Select ParticleSystem", OperationType.EDIT);
+						//renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
+						//updateEntryValues();
+						//renderer.editPanel.selectionChanged();
+						renderer.mainWindow.reset = true;
+					}else if (e.getStateChange() == ItemEvent.DESELECTED){
+						prevParticleSelection = (String)e.getItem();
+					}
+				}
+			}
+		});
+		menu_particleName = new JPopupMenu();
+		cb_particleName.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (SwingUtilities.isRightMouseButton(e)) {
+					menu_particleName.show(cb_particleName, 0, cb_particleName.getBounds().height);
+				}
+			}
+		});
+		JMenuItem mi_DuplicatePS = new JMenuItem("Duplicate this Entry");
+		menu_particleName.add(mi_DuplicatePS);
+		mi_DuplicatePS.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Undo.performFXOperation("Add ParticleSystem", OperationType.EDIT);
+				ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry();
+				entry.Name = ParticleSystemEntryPanel.this.entry.Name;
+				//TODO: Fill other values
+				Main.activeFXListType.ParticleSystems.add(entry);
+				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
+				renderer.editPanel.getPanel_ParticleEntries().add(pse_panel);
+				renderer.editPanel.updateFXGUI();
+				
+				renderer.editPanel.fxEditPerformed();
+			}
+		});
+		
+		JMenuItem mi_AddNewPS = new JMenuItem("Add new ParticleSystem");
+		menu_particleName.add(mi_AddNewPS);
+		mi_AddNewPS.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				NewParticleDialog dialog = new NewParticleDialog(renderer, "", "");
+				int result = dialog.showDialog();
+				if (result == 1) {					
+					ignoreChanges = true;
+					String pname = dialog.getName();
+					Undo.performParticleOperation(null, pname, "new ParticleSystem", OperationType.ADD);
+					Undo.performFXOperation("Select ParticleSystem", OperationType.EDIT);
+					ParticleSystemType ptype;
+					if (dialog.getCloneFrom() != null) {
+						ParticleSystemType other = Main.getParticleSystem(dialog.getCloneFrom());
+						if (other != null) {
+							ptype = new ParticleSystemType(other);
+						}else{
+							ptype = new ParticleSystemType();
+						}
+					}else {
+						ptype = new ParticleSystemType();
+					}
+					Main.ParticleSystemTypes.put(pname, ptype);
+					Main.work_ParticleSystemTypes.put(pname, ptype);
+					entry.Name = pname;
+					Main.updateParticleSystemNames();
+					renderer.browsePanel.fillLists();
+					renderer.editPanel.updateFXGUI();
+					renderer.editPanel.updateFXCode();
+					renderer.editPanel.fxEditPerformed();
+					
+					ignoreChanges = false;
+					renderer.mainWindow.reset = true;
+				}else {
+					ignoreChanges = true;
+					cb_particleName.setSelectedItem(prevParticleSelection);
+					ignoreChanges = false;
+				}
+			}
+		});
+		JMenuItem mi_ClonePS = new JMenuItem("Clone ParticleSystem");
+		mi_ClonePS.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				NewParticleDialog dialog = new NewParticleDialog(renderer, "", (String)cb_particleName.getSelectedItem());
+				int result = dialog.showDialog();
+				if (result == 1) {					
+					ignoreChanges = true;
+					String pname = dialog.getName();
+					Undo.performParticleOperation(null, pname, "new ParticleSystem", OperationType.ADD);
+					Undo.performFXOperation("Select ParticleSystem", OperationType.EDIT);
+					ParticleSystemType ptype;
+					if (dialog.getCloneFrom() != null) {
+						ParticleSystemType other = Main.getParticleSystem(dialog.getCloneFrom());
+						if (other != null) {
+							ptype = new ParticleSystemType(other);
+						}else{
+							ptype = new ParticleSystemType();
+						}
+					}else {
+						ptype = new ParticleSystemType();
+					}
+					Main.ParticleSystemTypes.put(pname, ptype);
+					Main.work_ParticleSystemTypes.put(pname, ptype);
+					entry.Name = pname;
+					Main.updateParticleSystemNames();
+					renderer.browsePanel.fillLists();
+					renderer.editPanel.updateFXGUI();
+					renderer.editPanel.updateFXCode();
+					renderer.editPanel.fxEditPerformed();
+					
+					ignoreChanges = false;
+					renderer.mainWindow.reset = true;
+				}else {
+					ignoreChanges = true;
+					cb_particleName.setSelectedItem(prevParticleSelection);
+					ignoreChanges = false;
+				}
+			}
+		});
+		menu_particleName.add(mi_ClonePS);
+		
+		
+		
+		
+		popupMenuView = new JPopupMenu();
+		//panel.add(popupMenuView);
+		
+		
 		chckbxShowParticle = new JCheckBox("", true);
+		chckbxShowParticle.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (SwingUtilities.isRightMouseButton(e)) {
+					popupMenuView.show(chckbxShowParticle, 0, chckbxShowParticle.getBounds().height);
+				}
+			}
+		});
 		chckbxShowParticle.setToolTipText("Show this ParticleSystem");
 		panel.add(chckbxShowParticle);
 		chckbxShowParticle.addItemListener(new ItemListener() {			
@@ -143,83 +303,46 @@ public class ParticleSystemEntryPanel extends JPanel {
 			}
 		});
 		
-		cb_particleName = new JComboBox(Main.ParticleSystemNames.toArray());
-		cb_particleName.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				if (entry != null && !ignoreChanges) {
-					if (e.getStateChange() == ItemEvent.SELECTED) {
-						//System.out.println("SelectionIndex="+cb_particleName.getSelectedIndex());
-						if (cb_particleName.getSelectedIndex() == -1) {
-//							int response = JOptionPane.showConfirmDialog(null, "Create ParticleSystem '"+(String)cb_particleName.getSelectedItem()+"'?", "Confirm",
-//							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-//							if (response == JOptionPane.YES_OPTION) {
-//								ignoreChanges = true;
-//								String pname = (String)cb_particleName.getSelectedItem();
-//								ParticleSystemType ptype = new ParticleSystemType();
-//								Main.ParticleSystemTypes.put(pname, ptype);
-//								entry.Name = pname;
-//								Main.updateParticleSystemNames();
-//								cb_particleName.removeAllItems();
-//								fillParticleNames();
-//								cb_particleName.setSelectedItem(pname);
-//								ignoreChanges = false;
-//							}else {
-//								ignoreChanges = true;
-//								cb_particleName.setSelectedItem(prevParticleSelection);
-//								ignoreChanges = false;
-//							}
-							
-							NewParticleDialog dialog = new NewParticleDialog(renderer, (String)e.getItem());
-							int result = dialog.showDialog();
-							if (result == 1) {
-								ignoreChanges = true;
-								String pname = dialog.getName();
-								ParticleSystemType ptype;
-								if (dialog.getCloneFrom() != null) {
-									ParticleSystemType other = Main.getParticleSystem(dialog.getCloneFrom());
-									if (other != null) {
-										ptype = new ParticleSystemType(other);
-									}else{
-										ptype = new ParticleSystemType();
-									}
-								}else {
-									ptype = new ParticleSystemType();
-								}
-								Main.ParticleSystemTypes.put(pname, ptype);
-								entry.Name = pname;
-								Main.updateParticleSystemNames();
-								//cb_particleName.removeAllItems();
-								//fillParticleNames();
-								//updateEntryValues();
-								//renderer.editPanel.FXvaluesChanged();
-								//renderer.editPanel.selectionChanged();
-								//renderer.updateActiveParticle(ptype, pname);
-								//cb_particleName.setSelectedItem(pname);
-								renderer.editPanel.updateFXGUI();
-								renderer.editPanel.updateFXCode();
-								renderer.editPanel.fxEditPerformed();
-								ignoreChanges = false;
-								renderer.mainWindow.reset = true;
-							}else {
-								ignoreChanges = true;
-								cb_particleName.setSelectedItem(prevParticleSelection);
-								ignoreChanges = false;
-							}
-						}else {
-							entry.Name = (String)e.getItem();
-							renderer.editPanel.fxEditPerformed();
-							//renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
-							//updateEntryValues();
-							//renderer.editPanel.selectionChanged();
+
+		
+		JMenuItem miHideAll = new JMenuItem("Hide all others");
+		miHideAll.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				for (Component c : renderer.editPanel.getPanel_ParticleEntries().getComponents()) {
+					if (c instanceof ParticleSystemEntryPanel) {
+						ParticleSystemEntryPanel panel = (ParticleSystemEntryPanel)c;
+						if (panel.entry != entry) {
+							panel.ignoreChanges = true;
+							panel.chckbxShowParticle.setSelected(false);
+							panel.entry.setVisible(false);
+							panel.ignoreChanges = false;
 							renderer.mainWindow.reset = true;
 						}
-					}else if (e.getStateChange() == ItemEvent.DESELECTED){
-						prevParticleSelection = (String)e.getItem();
 					}
 				}
 			}
 		});
-		cb_particleName.setEditable(true);
+		popupMenuView.add(miHideAll);
+		JMenuItem miShowAll = new JMenuItem("Show all");
+		miShowAll.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (Component c : renderer.editPanel.getPanel_ParticleEntries().getComponents()) {
+					if (c instanceof ParticleSystemEntryPanel) {
+						ParticleSystemEntryPanel panel = (ParticleSystemEntryPanel)c;
+						if (panel.entry != entry) {
+							panel.ignoreChanges = true;
+							panel.chckbxShowParticle.setSelected(true);
+							panel.entry.setVisible(true);
+							panel.ignoreChanges = false;
+							renderer.mainWindow.reset = true;
+						}
+					}
+				}
+			}
+		});
+		popupMenuView.add(miShowAll);
 		cb_particleName.setMinimumSize(new Dimension(150, 20));
 		cb_particleName.setPreferredSize(new Dimension(250, 20));
 		panel.add(cb_particleName);
@@ -235,15 +358,18 @@ public class ParticleSystemEntryPanel extends JPanel {
 		
 		tf_Offset_X = new ValueTextField(ValueTextField.VALUE_FLOAT);
 		tf_Offset_X.setColumns(5);
+		tf_Offset_X.setName("Offset X");
 		panel_4.add(tf_Offset_X);
 		
 		tf_Offset_Y = new ValueTextField(ValueTextField.VALUE_FLOAT);
 		tf_Offset_Y.setColumns(5);
 		panel_4.add(tf_Offset_Y);
+		tf_Offset_Y.setName("Offset Y");
 		
 		tf_Offset_Z = new ValueTextField(ValueTextField.VALUE_FLOAT);
 		tf_Offset_Z.setColumns(5);
 		panel_4.add(tf_Offset_Z);
+		tf_Offset_Z.setName("Offset Z");
 		
 		JPanel panel_2 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
@@ -258,10 +384,12 @@ public class ParticleSystemEntryPanel extends JPanel {
 		tf_DelayMin = new ValueTextField(ValueTextField.VALUE_INT);
 		tf_DelayMin.setColumns(8);
 		panel_2.add(tf_DelayMin);
+		tf_DelayMin.setName("InitialDelay Min");
 		
 		tf_DelayMax = new ValueTextField(ValueTextField.VALUE_INT);
 		tf_DelayMax.setColumns(8);
 		panel_2.add(tf_DelayMax);
+		tf_DelayMax.setName("InitialDelay Max");
 		
 		JPanel panel_3 = new JPanel();
 		panel_3.setAlignmentY(Component.TOP_ALIGNMENT);
@@ -322,6 +450,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 		btnDelete.setMargin(new Insets(0, 0, 0, 0));
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performFXOperation("removed ParticleSystem entry", OperationType.EDIT);
 				renderer.editPanel.removeParticleEntry(entry);
 				JPanel pp = renderer.editPanel.getPanel_ParticleEntries();
 				pp.remove(ParticleSystemEntryPanel.this);
@@ -385,16 +514,44 @@ public class ParticleSystemEntryPanel extends JPanel {
 		entry.Ricochet = chckbxmntmRicochet.isSelected();
 		entry.UseCallersRadius = chckbxmntmUsecallersradius.isSelected();
 		entry.OrientToObject = chckbxmntmOrienttoobject.isSelected();
-		entry.Height[0] = (float)tf_HeightMin.getValue();
-		entry.Height[1] = (float)tf_HeightMax.getValue();
-		entry.InitialDelay[0] = (int)tf_DelayMin.getValue();
-		entry.InitialDelay[1] = (int)tf_DelayMax.getValue();
+		
+		//-Random Values--
+		float f1, f2;
+		f1 = (float)tf_HeightMin.getValue();
+		f2 = (float)tf_HeightMax.getValue();
+		if (f1 != 0 || f2 != 0) {
+			if (entry.Height == null) entry.Height = entry.new RandomFloatEntry(f1, f2, e_RandomType.UNIFORM);
+			entry.Height.data[0] = f1;
+			entry.Height.data[1] = f2;
+		}else {
+			entry.Height = null;
+		}
+		
+		f1 = (float) tf_RadiusMin.getValue();
+		f2 = (float) tf_RadiusMax.getValue();
+		if (f1 != 0 || f2 != 0) {
+			if (entry.Radius == null) entry.Radius = entry.new RandomFloatEntry(f1, f2, e_RandomType.UNIFORM);
+			entry.Radius.data[0] = f1;
+			entry.Radius.data[1] = f2;
+		}else {
+			entry.Radius = null;
+		}
+		
+		int i1, i2;		
+		i1 = (int)tf_DelayMin.getValue();
+		i2 = (int)tf_DelayMax.getValue();
+		if (i1 != 0 || i2 != 0) {
+			if (entry.InitialDelay == null) entry.InitialDelay = entry.new RandomIntEntry(i1, i2, e_RandomType.UNIFORM);
+			entry.InitialDelay.data[0] = i1;
+			entry.InitialDelay.data[1] = i2;
+		}else {
+			entry.InitialDelay = null;
+		}
+		
 		entry.Name = (String)cb_particleName.getSelectedItem();
 		entry.Offset[0] =(float) tf_Offset_X.getValue();
 		entry.Offset[1] = (float) tf_Offset_Y.getValue();
 		entry.Offset[2] = (float) tf_Offset_Z.getValue();
-		entry.Radius[0] = (float) tf_RadiusMin.getValue();
-		entry.Radius[1] = (float) tf_RadiusMax.getValue();
 		renderer.editPanel.fxEditPerformed();
 	}
 
@@ -411,15 +568,25 @@ public class ParticleSystemEntryPanel extends JPanel {
 		this.chckbxmntmRicochet.setSelected(entry.Ricochet);
 		this.chckbxmntmUsecallersradius.setSelected(entry.UseCallersRadius);
 		this.tf_Count.setValue(entry.Count);
-		this.tf_DelayMin.setValue(entry.InitialDelay[0]);
-		this.tf_DelayMax.setValue(entry.InitialDelay[1]);
-		this.tf_HeightMin.setValue(entry.Height[0]);
-		this.tf_HeightMax.setValue(entry.Height[1]);
+		
+		if (entry.InitialDelay != null) {
+			this.tf_DelayMin.setValue(entry.InitialDelay.data[0]);
+			this.tf_DelayMax.setValue(entry.InitialDelay.data[1]);
+		}
+		if(entry.Height != null) {
+			this.tf_HeightMin.setValue(entry.Height.data[0]);
+			this.tf_HeightMax.setValue(entry.Height.data[1]);
+		}
+		if (entry.Radius != null) {
+			this.tf_RadiusMin.setValue(entry.Radius.data[0]);
+			this.tf_RadiusMax.setValue(entry.Radius.data[1]);
+		}
+		
+		chckbxShowParticle.setSelected(entry.isVisible());
+		
 		this.tf_Offset_X.setValue(entry.Offset[0]);
 		this.tf_Offset_Y.setValue(entry.Offset[1]);
 		this.tf_Offset_Z.setValue(entry.Offset[2]);
-		this.tf_RadiusMin.setValue(entry.Radius[0]);
-		this.tf_RadiusMax.setValue(entry.Radius[1]);
 		ignoreChanges = false;
 	}
 

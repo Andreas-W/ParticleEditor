@@ -1,6 +1,8 @@
-02.02
+06.02
 -----
-
+implement crash safe when a particleSystem in an FXList is non-existant -WIP
+Fix weird Velocity bug (Velocity should be zero, but moves) -DONE???
+Fix affine-transform issue (Volume Line + Outward Vel??) - DONE
 
 
 

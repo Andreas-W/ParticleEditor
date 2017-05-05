@@ -11,6 +11,10 @@ import java.util.Scanner;
 
 import util.Util;
 import entitytypes.FXListType;
+import entitytypes.FXListType.ParticleSystemEntry;
+import entitytypes.FXListType.ParticleSystemEntry.RandomFloatEntry;
+import entitytypes.FXListType.ParticleSystemEntry.RandomIntEntry;
+import entitytypes.FXListType.e_RandomType;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.posEntry;
 
@@ -26,8 +30,10 @@ public class Parser {
 		sc.useDelimiter("\\s+;.*\\s+|;.*\\s+|(\\s*=)?\\s*[rRgGbBxXyYzZ]\\s*:\\s*|(\\s*=\\s*)|\\s+");
 		String next = "";
 		//StringBuilder error = new StringBuilder();
-		while (sc.hasNextLine()) {
+		boolean eof = false;
+		while (!eof && sc.hasNextLine() || sc.hasNext()) {
 			if (sc.hasNext()) next = sc.next();
+			else eof = true;
 			if (next.toLowerCase().equals("particlesystem") && sc.hasNext()) {
 				String name = sc.next();
 				boolean end = false;
@@ -55,6 +61,20 @@ public class Parser {
 				}
 				particleSystemTypes.put(name, type);
 				//System.out.println("Added ParticleSystem "+name);
+			}else if (next.toLowerCase().equals("fxlist")) {
+				boolean end = false;
+				while (sc.hasNextLine() && !end) {
+					if (sc.hasNext()) next = sc.next();
+					if (next.toLowerCase().equals("end")) {
+						end = true;
+					}else {
+						if (next.toLowerCase().equals("particlesystem") || isAdditionalEntry(next)) {
+							while (sc.hasNextLine() && !((next = sc.nextLine()).trim().toLowerCase()).equals("end")) {
+								//++
+							}
+						}
+					}
+				}	
 			}
 		}
 		
@@ -72,7 +92,11 @@ public class Parser {
 			try {
 				if (c == String.class) {
 					String value = getStringValue(sc);
-					field.set(type, value);
+					if(field.getName().equals("ParticleName")) {
+						field.set(type, value.toLowerCase());
+					}else {
+						field.set(type, value);
+					}					
 				}else if (c == Float.TYPE) {
 					float value = getFloatValue(sc);
 					field.setFloat(type, value);
@@ -117,6 +141,18 @@ public class Parser {
 				}else if (c.isEnum()) { //Enum types
 					String value = getStringValue(sc);
 					field.set(type, Enum.valueOf(field.getType().asSubclass(Enum.class), value));
+				}else if ( c == FXListType.ParticleSystemEntry.RandomFloatEntry.class) {
+					float f1 = getFloatValue(sc);
+					float f2 = getFloatValue(sc);
+					String value = getStringValue(sc);
+					RandomFloatEntry entry = ((ParticleSystemEntry)type).new RandomFloatEntry(f1, f2, e_RandomType.valueOf(value));
+					field.set(type, entry);
+				}else if ( c == FXListType.ParticleSystemEntry.RandomIntEntry.class) {
+					int i1 = getIntValue(sc);
+					int i2 = getIntValue(sc);
+					String value = getStringValue(sc);
+					RandomIntEntry entry = ((ParticleSystemEntry)type).new RandomIntEntry(i1, i2, e_RandomType.valueOf(value));
+					field.set(type, entry);
 				}
 			}catch (ParseErrorException e) {
 				errors.add(token + ": " + e.msg);
@@ -136,9 +172,11 @@ public class Parser {
 		sc.useLocale(Locale.ENGLISH);
 		sc.useDelimiter("\\s+;.*\\s+|;.*\\s+|(\\s*=)?\\s*[rRgGbBxXyYzZ]\\s*:\\s*|(\\s*=\\s*)|\\s+");
 		String next = "";
+		boolean eof = false;
 		//StringBuilder error = new StringBuilder();
-		while (sc.hasNextLine()) {
+		while (!eof && sc.hasNextLine() || sc.hasNext()) {
 			if (sc.hasNext()) next = sc.next();
+			else eof = true;
 			if (next.toLowerCase().equals("fxlist")) {
 				String name = sc.next();
 				boolean end = false;
@@ -178,7 +216,7 @@ public class Parser {
 						}else if (isAdditionalEntry(next)) {
 							type.additionalEntries += next;
 							while (sc.hasNextLine() && !((next = sc.nextLine()).trim().toLowerCase()).equals("end")) {
-								type.additionalEntries+= (next)+"\n";
+								type.additionalEntries+= "  "+(next.trim())+"\n";
 							};
 							type.additionalEntries+="End\n";
 						}
@@ -201,6 +239,7 @@ public class Parser {
 		return next.toLowerCase().equals("lightpulse") || 
 				next.toLowerCase().equals("sound") ||
 				next.toLowerCase().equals("viewshake") ||
+				next.toLowerCase().equals("tracer") ||
 				next.toLowerCase().equals("terrainscorch");
 	}
 	

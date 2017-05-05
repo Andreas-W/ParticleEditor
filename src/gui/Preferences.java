@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
@@ -23,6 +24,10 @@ import main.Main;
 
 import java.awt.Component;
 
+import javax.swing.JRadioButton;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+
 public class Preferences extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
@@ -30,6 +35,11 @@ public class Preferences extends JDialog {
 	private JTextField tfFXFile;
 	private JTextField tfTextures2;
 	private JTextField tfTextures1;
+	private JRadioButton rbLoadUsedTextures;
+	private JTextField tfTexturePattern;
+	private JRadioButton rbLoadAllTextures;
+	
+	private boolean init = false;
 
 	/**
 	 * Create the dialog.
@@ -103,6 +113,44 @@ public class Preferences extends JDialog {
 			}
 		});
 		panel2.add(btnTextures2Edit);
+		
+		JPanel panel_1 = new JPanel();
+		contentPanel.add(panel_1);
+		
+		ButtonGroup bg = new ButtonGroup();
+		
+		rbLoadUsedTextures = new JRadioButton("Load used textures only");
+		rbLoadUsedTextures.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (init && e.getStateChange() == ItemEvent.SELECTED) {
+					tfTexturePattern.setEnabled(false);
+				}
+			}
+		});
+		panel_1.add(rbLoadUsedTextures);
+		
+		rbLoadAllTextures = new JRadioButton("Load all textures matching:");
+		rbLoadAllTextures.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (init && e.getStateChange() == ItemEvent.SELECTED) {
+					tfTexturePattern.setEnabled(true);
+				}
+			}
+		});
+		rbLoadAllTextures.setSelected(true);
+		panel_1.add(rbLoadAllTextures);
+		
+		bg.add(rbLoadAllTextures);
+		bg.add(rbLoadUsedTextures);
+		
+		tfTexturePattern = new JTextField();
+		panel_1.add(tfTexturePattern);
+		tfTexturePattern.setColumns(16);
+		if (Config.TextureLoadPattern != null) {
+			tfTexturePattern.setText(Config.TextureLoadPattern);
+			rbLoadAllTextures.setSelected(true);
+		}
+		
 
 		JSeparator separator = new JSeparator();
 		separator.setAlignmentY(Component.TOP_ALIGNMENT);
@@ -166,6 +214,10 @@ public class Preferences extends JDialog {
 			}
 		});
 		panel4.add(btnFXFileEdit);
+		
+		JSeparator separator_1 = new JSeparator();
+		contentPanel.add(separator_1);
+		separator_1.setAlignmentY(0.0f);
 
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -174,6 +226,11 @@ public class Preferences extends JDialog {
 		JButton btnOK = new JButton("OK");
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				if (rbLoadAllTextures.isSelected() && tfTexturePattern.getText() != null && !tfTexturePattern.getText().equals("")) {
+					Config.TextureLoadPattern = tfTexturePattern.getText();
+				}else {
+					Config.TextureLoadPattern = null;
+				}
 				setVisible(false);
 				dispose();
 			}
@@ -183,6 +240,7 @@ public class Preferences extends JDialog {
 		getRootPane().setDefaultButton(btnOK);
 
 		loadValues();
+		init = true;
 	}
 
 	private void loadValues() {

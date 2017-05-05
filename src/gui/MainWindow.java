@@ -12,6 +12,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.ComboBoxModel;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 import javax.swing.JToggleButton;
 import javax.swing.JButton;
@@ -54,9 +55,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import parser.Parser;
+import util.Undo;
 import util.Util;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
+import gui.filter.FilterDialog;
+import gui.filter.FilterPanel_Scale;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -74,13 +78,12 @@ public class MainWindow extends JFrame {
 	public boolean running = true;
 	public boolean reset = false;
 	
-	public ArrayList<Color> colors;
-	
 	private JToggleButton tglbtnPlay;
 	private JSlider sld_FPS;
 	private JFormattedTextField txt_ZOffset;
 	private JCheckBox chckbxShowGround;
-	private JComboBox cb_bgColor;
+	private JMenuItem miUndo;
+	private JMenuItem miRedo;
 	/**
 	 * Create the frame.
 	 */
@@ -107,10 +110,11 @@ public class MainWindow extends JFrame {
 		JMenuItem mntmExportWorkingSet = new JMenuItem("Export working set to file...");
 		mntmExportWorkingSet.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser fileChooser = new JFileChooser();
+				JFileChooser fileChooser = new JFileChooser(Config.DefaultFolderWorkingSet);
 				fileChooser.setDialogTitle("Specify a file to save");   				 
 				int userSelection = fileChooser.showSaveDialog(MainWindow.this);				 
 				if (userSelection == JFileChooser.APPROVE_OPTION) {
+					Config.DefaultFolderWorkingSet = fileChooser.getCurrentDirectory().getAbsolutePath();
 				    File file = fileChooser.getSelectedFile();
 				    saveWorkingSetToFile(file);
 				}
@@ -153,6 +157,95 @@ public class MainWindow extends JFrame {
 		mnFile.add(mntmImportiniFiles);
 		mnFile.add(mntmExportWorkingSet);
 		
+		JMenuItem miSaveFXList = new JMenuItem("Save FXList.INI file...");
+		miSaveFXList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				StringBuilder message = new StringBuilder("(over)write the following entries in '"+Config.currentFXListFile+"':\n");
+				for (String s : Main.work_FXListTypes.keySet()) {
+					message.append("'"+s+"'\n");
+				}
+				int result = JOptionPane.showConfirmDialog(MainWindow.this, message.toString(), "Save modified FXLists", JOptionPane.OK_CANCEL_OPTION);
+				if (result == JOptionPane.OK_OPTION) {
+					Util.saveToFXListIniFile();
+				}
+			}
+		});
+		
+		JMenuItem mntmCopyWorkingSet = new JMenuItem("Copy working set to clipboard");
+		mntmCopyWorkingSet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				workingSetToClipboard();
+			}
+		});
+		
+		JMenuItem mntmImportWorkingSet = new JMenuItem("Import working set from file...");
+		mntmImportWorkingSet.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fileChooser2 = new JFileChooser(Config.DefaultFolderWorkingSet);
+				   fileChooser2.setDialogTitle("Specify FXList.ini file");		
+				   int userSelection = fileChooser2.showOpenDialog(MainWindow.this);				 
+				   if (userSelection == JFileChooser.APPROVE_OPTION) {
+					   Config.DefaultFolderWorkingSet = fileChooser2.getCurrentDirectory().getAbsolutePath();
+					   String path = fileChooser2.getSelectedFile().getAbsolutePath();
+					   renderer.browsePanel.setIgnoreChanges(true);
+					   renderer.canvas.setVisible(false);
+					   JWindow w = Util.showLoadingWindow(renderer.mainWindow);
+					   Main.loadWorkinSet(path);
+					   renderer.loadTextures();
+					   renderer.browsePanel.browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
+					   renderer.browsePanel.browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+					   renderer.editPanel.particleEditPanel.fillParticleLists();
+					   w.setVisible(false);
+					   w.dispose();
+					   renderer.canvas.setVisible(true);
+					   reset = true;
+					   renderer.browsePanel.browse_Working.getA_lst_FX().clearSelection();
+					   renderer.browsePanel.setIgnoreChanges(false);
+				   }
+			}
+		});
+		mnFile.add(mntmImportWorkingSet);
+		mnFile.add(mntmCopyWorkingSet);
+		mnFile.add(miSaveFXList);
+		
+		JMenuItem miSaveParticlesystem = new JMenuItem("Save ParticleSystem.INI file...");
+		miSaveParticlesystem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				StringBuilder message = new StringBuilder("(over)write the following entries in '"+Config.currentParticleSystemFile+"':\n");
+				for (String s : Main.work_ParticleSystemTypes.keySet()) {
+					message.append("'"+s+"'\n");
+				}
+				int result = JOptionPane.showConfirmDialog(MainWindow.this, message.toString(), "Save modified ParticleSystems", JOptionPane.OK_CANCEL_OPTION);
+				if (result == JOptionPane.OK_OPTION) {
+					Util.saveToParticleSystemIniFile();
+				}
+			}
+		});
+		mnFile.add(miSaveParticlesystem);
+		
+		JMenu mnEdit = new JMenu("Edit");
+		menuBar.add(mnEdit);
+		
+		miUndo = new JMenuItem("Undo");
+		miUndo.setEnabled(false);
+		miUndo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Undo.undo();
+				updateUndoText();
+			}
+		});
+		mnEdit.add(miUndo);
+		
+		miRedo = new JMenuItem("Redo");
+		miRedo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Undo.redo();
+				updateUndoText();
+			}
+		});
+		miRedo.setEnabled(false);
+		mnEdit.add(miRedo);
+		
 		JMenu mnSettings = new JMenu("Settings");
 		menuBar.add(mnSettings);
 		
@@ -164,6 +257,33 @@ public class MainWindow extends JFrame {
 			}
 		});
 		mnSettings.add(mi_Preferences);
+		
+		JMenuItem mntmView = new JMenuItem("View");
+		mntmView.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ViewConfig viewDialog = new ViewConfig();
+				viewDialog.setVisible(true);
+			}
+		});
+		mnSettings.add(mntmView);
+		
+		JMenu mnFilter = new JMenu("Filter");
+		menuBar.add(mnFilter);
+		
+		JMenuItem mntmScaleFx = new JMenuItem("Scale FX");
+		mntmScaleFx.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				renderer.editPanel.particleEditPanel.ignoreChanges = true;
+				renderer.editPanel.ignoreChanges = true;
+				
+				FilterDialog dialog = new FilterDialog(new FilterPanel_Scale());
+				dialog.setVisible(true);
+				
+				renderer.editPanel.particleEditPanel.ignoreChanges = false;
+				renderer.editPanel.ignoreChanges = false;
+			}
+		});
+		mnFilter.add(mntmScaleFx);
 		
 //		JMenuItem mi_ChooseTextureFolder = new JMenuItem("Choose Primary Texture folder...");
 //		mnSettings.add(mi_ChooseTextureFolder);
@@ -194,6 +314,7 @@ public class MainWindow extends JFrame {
 		contentPane.add(panel_1, BorderLayout.NORTH);
 		
 		JToolBar toolBar = new JToolBar();
+		toolBar.setFloatable(false);
 		panel_1.add(toolBar);
 		
 		btnReset = new JButton("Reset");
@@ -241,6 +362,7 @@ public class MainWindow extends JFrame {
 		panel.add(lblFps_val);
 		
 		JToolBar toolBar_1 = new JToolBar();
+		toolBar_1.setFloatable(false);
 		panel_1.add(toolBar_1);
 		
 		JButton btnResetView = new JButton("Reset View");
@@ -283,38 +405,25 @@ public class MainWindow extends JFrame {
 		});
 		txt_ZOffset.setColumns(8);
 		panel_2.add(txt_ZOffset);
-		
-		JPanel panel_3 = new JPanel();
-		toolBar_1.add(panel_3);
-		
-		JLabel lblBackground = new JLabel("Background:");
-		panel_3.add(lblBackground);
-		
-		cb_bgColor = new JComboBox(); //COLORS		
+	}
 
-		colors = new ArrayList<Color>();
-		colors.add(Color.BLACK); cb_bgColor.addItem("black");
-		colors.add(Color.WHITE); cb_bgColor.addItem("white");
-		colors.add(Color.LIGHT_GRAY); cb_bgColor.addItem("light gray");
-		colors.add(Color.GRAY); cb_bgColor.addItem("gray");
-		colors.add(Color.DARK_GRAY); cb_bgColor.addItem("dark gray");
-		colors.add(Color.RED); cb_bgColor.addItem("red");
-		colors.add(Color.GREEN); cb_bgColor.addItem("green");
-		colors.add(Color.BLUE); cb_bgColor.addItem("blue");
-		colors.add(Color.CYAN); cb_bgColor.addItem("cyan");
-		colors.add(Color.MAGENTA); cb_bgColor.addItem("magenta");
-		colors.add(Color.YELLOW); cb_bgColor.addItem("yellow");
-		colors.add(Color.ORANGE); cb_bgColor.addItem("orange");
-		colors.add(Color.PINK); cb_bgColor.addItem("pink");
-		cb_bgColor.setSelectedIndex(0);
-		
-		cb_bgColor.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent arg0) {
-				renderer.setBackgroundColor(colors.get(cb_bgColor.getSelectedIndex()));
-			}
-		});
-
-		panel_3.add(cb_bgColor);
+	public void updateUndoText() {
+		String undoText = Undo.undoText();
+		String redoText = Undo.redoText();
+		if (undoText != null) {
+			miUndo.setText(Undo.undoText());
+			miUndo.setEnabled(true);
+		}else {
+			miUndo.setText("Undo");
+			miUndo.setEnabled(false);
+		}
+		if (redoText != null) {
+			miRedo.setText(Undo.redoText());
+			miRedo.setEnabled(true);
+		}else {
+			miRedo.setText("Redo");
+			miRedo.setEnabled(false);
+		}
 	}
 
 	public void saveWorkingSetToFile(File file) {
@@ -352,6 +461,32 @@ public class MainWindow extends JFrame {
 			e.printStackTrace();
 		}
 	}
+	
+	public void workingSetToClipboard() {
+		StringBuilder sb = new StringBuilder();
+		for (String fxName : Main.work_FXListTypes.keySet()) {
+			FXListType ftype = Main.work_FXListTypes.get(fxName);
+			sb.append("FXList "+fxName+"\n");
+			String[] lines = ftype.createInnerCode().split("\n");
+			for (String l : lines) {
+				sb.append("  "+l+"\n");
+			}
+			sb.append("End\n\n");
+		}
+		sb.append(";--------------------------------\n");
+		sb.append(";------ Particle Systems  -------\n");
+		sb.append(";--------------------------------\n\n");
+		for (String pName : Main.work_ParticleSystemTypes.keySet()) {
+			ParticleSystemType ptype = Main.work_ParticleSystemTypes.get(pName);
+			sb.append("ParticleSystem "+pName+"\n");
+			String[] lines = ptype.createInnerCode().split("\n");
+			for (String l : lines) {
+				sb.append("  "+l+"\n");
+			}
+			sb.append("End\n");
+		}
+		Util.toClipboard(sb.toString());
+	}
 
 	public JLabel getLblFps_val() {
 		return lblFps_val;
@@ -381,8 +516,6 @@ public class MainWindow extends JFrame {
 	public JCheckBox getChckbxShowGround() {
 		return chckbxShowGround;
 	}
-	public JComboBox getCb_bgColor() {
-		return cb_bgColor;
-	}
+
 
 }

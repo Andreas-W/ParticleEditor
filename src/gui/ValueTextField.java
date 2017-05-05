@@ -14,6 +14,9 @@ import util.Util;
 
 public class ValueTextField extends JTextField{
 	
+	Object maxValue;
+	Object minValue;
+	
 	public final static int VALUE_FLOAT = 0;
 	public final static int VALUE_INT = 1;
 	
@@ -21,6 +24,8 @@ public class ValueTextField extends JTextField{
 	
 	private Object value = null;
 	
+	boolean loseFocusOnEnter = true;
+
 	public ValueTextField(int valType) {
 		super();
 		this.valueType = valType;
@@ -31,9 +36,14 @@ public class ValueTextField extends JTextField{
 			@Override
 		    public void actionPerformed(ActionEvent e)
 		    {
-				Object oldValue = value;
-		        verifyText();
-		        firePropertyChange("value", oldValue, ValueTextField.this.getValue());
+				if (loseFocusOnEnter) {
+					ValueTextField.this.setFocusable(false);
+					ValueTextField.this.setFocusable(true);
+				}else {
+					ValueTextField.this.setFocusable(false);
+					ValueTextField.this.setFocusable(true);
+					ValueTextField.this.requestFocus();
+				}
 		    }
 		});
 		
@@ -54,9 +64,17 @@ public class ValueTextField extends JTextField{
 		try {
 			if (valueType == VALUE_INT) {
 				value = (int)(Float.parseFloat(getText())); 
+				
+				if (minValue != null) value = Math.max((int)minValue,  (int)value);
+				if (maxValue != null) value = Math.min((int)maxValue,  (int)value);
+				
 				setText(""+value);
 			}else if (valueType == VALUE_FLOAT) {
 				value = Float.parseFloat(getText());
+				
+				if (minValue != null) value = Math.max((float)minValue,  (float)value);
+				if (maxValue != null) value = Math.min((float)maxValue,  (float)value);
+				
 				setText(Util.fmt((float)value));
 			}
 		} catch (NumberFormatException ex) {
@@ -82,5 +100,30 @@ public class ValueTextField extends JTextField{
 	public void setValue(float f) {
 		setText(Util.fmt(f));
 		value = f;
+	}
+	
+	public void setMaxValue(float f) {
+		this.maxValue = f;
+	}
+	
+	public void setMinValue(float f) {
+		this.minValue = f;
+	}
+	
+    public void setMaxValue(int i) {
+    	this.maxValue = i;
+	}
+	
+	public void setMinValue(int i) {
+		this.minValue = i;
+	}
+	
+	public boolean isLoseFocusOnEnter() {
+		return loseFocusOnEnter;
+	}
+
+
+	public void setLoseFocusOnEnter(boolean loseFocusOnEnter) {
+		this.loseFocusOnEnter = loseFocusOnEnter;
 	}
 }

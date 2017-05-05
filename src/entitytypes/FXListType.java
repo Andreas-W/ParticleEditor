@@ -2,6 +2,8 @@ package entitytypes;
 
 import java.util.ArrayList;
 
+import entitytypes.FXListType.ParticleSystemEntry;
+import main.Main;
 import util.Util;
 
 //FXList entry
@@ -32,10 +34,13 @@ public class FXListType {
 		public String Name = "";
 		public boolean OrientToObject = false; // [Yes/No]
 		public float[] Offset = new float[]{ 0.0f, 0.0f, 0.0f };
-		public int[] InitialDelay = new int[]{0, 0};
+		public RandomIntEntry InitialDelay;
+		
 		public int Count = 1;
-		public float[] Radius = new float[]{0, 0};
-		public float[] Height = new float[]{0, 0};
+		public RandomFloatEntry Radius;
+		
+		public RandomFloatEntry Height;
+		
 		//Additional Stuff (Ignored in this editor)
 		public boolean UseCallersRadius = false;
 		public boolean CreateAtGroundHeight = false;
@@ -45,10 +50,10 @@ public class FXListType {
 			this.Name = other.Name;
 			this.OrientToObject = other.OrientToObject;
 			this.Offset = other.Offset.clone();
-			this.InitialDelay = other.InitialDelay.clone();
+			if (other.InitialDelay != null) this.InitialDelay = new RandomIntEntry(other.InitialDelay);
 			this.Count = other.Count;
-			this.Radius = other.Radius.clone();
-			this.Height = other.Height.clone();
+			if (other.Radius != null) this.Radius = new RandomFloatEntry(other.Radius);
+			if (other.Height != null) this.Height = new RandomFloatEntry(other.Height);
 			this.UseCallersRadius = other.UseCallersRadius;
 			this.CreateAtGroundHeight = other.CreateAtGroundHeight;
 			this.Ricochet = other.Ricochet;
@@ -61,14 +66,16 @@ public class FXListType {
 			StringBuilder sb = new StringBuilder();
 			sb.append("ParticleSystem\n");
 			sb.append("  Name = ").append(Name).append("\n");
+			if (Count > 1)
+				sb.append("Count = "+Count+"\n");
 			if (Offset[0] != 0 || Offset[1] != 0 || Offset[2] != 0)
 				sb.append(String.format("  Offset = X:%s Y:%s Z:%s\n", Util.fmt(Offset[0]),  Util.fmt(Offset[1]),  Util.fmt(Offset[2])));
-			if (InitialDelay[0] != 0 || InitialDelay[1] != 0)
-				sb.append(String.format("  InitialDelay = %d %d UNIFORM\n", InitialDelay[0], InitialDelay[1]));
-			if (Radius[0] != 0 || Radius[1] != 0)
-				sb.append(String.format("  Radius = %s %s UNIFORM\n",  Util.fmt(Radius[0]),  Util.fmt(Radius[1])));
-			if (Height[0] != 0 || Height[1] != 0)
-				sb.append(String.format("  Height = %s %s UNIFORM\n",  Util.fmt(Height[0]),  Util.fmt(Height[1])));
+			if (InitialDelay != null && (InitialDelay.data[0] != 0 || InitialDelay.data[1] != 0))
+				sb.append("  InitialDelay"+InitialDelay.getCode());
+			if (Radius != null &&( Radius.data[0] != 0 || Radius.data[1] != 0))
+				sb.append("  Radius"+Radius.getCode());
+			if (Height != null && (Height.data[0] != 0 || Height.data[1] != 0))
+				sb.append("  Height"+Height.getCode());
 			if (OrientToObject)
 				sb.append("  OrientToObject = Yes\n");
 			if (UseCallersRadius)
@@ -89,6 +96,53 @@ public class FXListType {
 
 		public void setVisible(boolean visible) {
 			this.visible = visible;
+		}
+		
+		public class RandomIntEntry {
+			public int[] data = new int[2];
+			public e_RandomType rtype = e_RandomType.UNIFORM;		
+			public RandomIntEntry(int i1, int i2, e_RandomType rtype) {
+				data[0] = i1;
+				data[1] = i2;
+				this.rtype = rtype;
+			}
+			public RandomIntEntry(RandomIntEntry other) {
+				data = other.data.clone();
+				this.rtype = other.rtype;
+			}
+			public String getCode() {
+				return String.format(" = %d %d %s\n", data[0], data[1], rtype.toString());
+			}
+		}
+		
+		public class RandomFloatEntry {
+			public float[] data = new float[2];
+			public e_RandomType rtype = e_RandomType.UNIFORM;		
+			public RandomFloatEntry(float f1, float f2, e_RandomType rtype) {
+				data[0] = f1;
+				data[1] = f2;
+				this.rtype = rtype;
+			}
+			public RandomFloatEntry(RandomFloatEntry other) {
+				data = other.data.clone();
+				this.rtype = other.rtype;
+			}
+			public String getCode() {
+				return String.format(" = %s %s %s\n", Util.fmt(data[0]), Util.fmt(data[1]), rtype.toString());
+			}
+		}
+
+		public void setValues(ParticleSystemEntry other) {
+			this.Name = other.Name;
+			this.OrientToObject = other.OrientToObject;
+			this.Offset = other.Offset.clone();
+			if (other.InitialDelay != null) this.InitialDelay = new RandomIntEntry(other.InitialDelay);
+			this.Count = other.Count;
+			if (other.Radius != null) this.Radius = new RandomFloatEntry(other.Radius);
+			if (other.Height != null) this.Height = new RandomFloatEntry(other.Height);
+			this.UseCallersRadius = other.UseCallersRadius;
+			this.CreateAtGroundHeight = other.CreateAtGroundHeight;
+			this.Ricochet = other.Ricochet;
 		}
 				
 	}
@@ -133,5 +187,19 @@ public class FXListType {
 	}
 	public boolean isTemporary() {
 		return temporary;
+	}
+	
+	public enum e_RandomType {
+		CONSTANT, UNIFORM, GAUSSIAN, TRIANGULAR, LOW_BIAS, HIGH_BIAS
+	}
+
+	public String getFormattedCode(String name) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("FXList "+name);
+		for (String line : this.createInnerCode().split("\n")) {
+			sb.append("\n  ").append(line);
+		}
+		sb.append("\nEnd");
+		return sb.toString();
 	}
 }

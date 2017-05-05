@@ -16,6 +16,8 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import entities.FXList;
 import entitytypes.FXListType;
@@ -27,6 +29,8 @@ import util.Util;
 
 public class Main {
 
+	public static Renderer renderer;
+	
 	public static final String configFilePath = "./config.properties";
 
 	public static int FPS = 30; //30;
@@ -44,6 +48,22 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UnsupportedLookAndFeelException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		Config.readConfigFile(configFilePath);
 		
 		Locale.setDefault(Locale.US);
@@ -55,7 +75,7 @@ public class Main {
 		
 		if (loaded) {
 
-			final Renderer renderer = new Renderer();
+			renderer = new Renderer();
 			//renderer.loadTextures();
 			
 			w.setVisible(false);
@@ -139,6 +159,9 @@ public class Main {
 			activeParticleSystemType = ParticleSystemTypes.get(ParticleSystemNames.get(0));
 			activeFXListType = FXListTypes.get(FXListNames.get(0));
 			
+			Config.currentFXListFile = FXLists;
+			Config.currentParticleSystemFile = particleSystems;
+			
 			return true;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -146,6 +169,41 @@ public class Main {
 		}		
 	}
 	
+	public static void loadWorkinSet(String filename) {
+		try {
+			Parser.parseParticleSystemINI(filename, work_ParticleSystemTypes);
+			Parser.parseFXListINI(filename, work_FXListTypes);
+			
+			for (String fx : work_FXListTypes.keySet()) {
+				FXListTypes.put(fx, work_FXListTypes.get(fx));
+			}
+			for (String ps: work_ParticleSystemTypes.keySet()) {
+				ParticleSystemTypes.put(ps, work_ParticleSystemTypes.get(ps));
+			}
+			
+			updateParticleSystemNames();
+			updateFXListNames();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	public static String activeFXName() {
+		if (activeFXListType != null && !activeFXListType.isTemporary()) {
+			return renderer.editPanel.txtFXName.getText();
+		}else {
+			return null;
+		}
+	}
+	
+	public static String activeParticleName() {
+		if (activeParticleSystemType != null) {
+			return (String) renderer.editPanel.cb_ParticleSystems.getSelectedItem();
+		}else {
+			return null;
+		}
+	}
 	
 	public static void updateFXListNames() {
 		FXListNames = new ArrayList<String>();

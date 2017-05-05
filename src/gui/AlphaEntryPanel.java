@@ -12,8 +12,11 @@ import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 
+import util.Undo;
+import util.Undo.OperationType;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.alphaEntry;
+import main.Main;
 import main.Renderer;
 
 import java.awt.Font;
@@ -47,9 +50,16 @@ public class AlphaEntryPanel extends JPanel {
 		valuesChangedListener = new PropertyChangeListener() {
 			public void propertyChange(PropertyChangeEvent e) {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
-				if (e.getPropertyName().equals("value") && aEntry != null && !ignoreChanges) {
+//				if (e.getPropertyName().equals("value") && aEntry != null && !ignoreChanges) {
+//					updateValues();
+////					renderer.editPanel.FXvaluesChanged();
+//					renderer.mainWindow.reset = true;
+//				}
+				if (e.getPropertyName().equals("value")  && !e.getNewValue().equals(e.getOldValue())&& Main.activeParticleSystemType != null && !ignoreChanges) {
+					Undo.performParticleOperation("changed alpha value", OperationType.EDIT);
 					updateValues();
-//					renderer.editPanel.FXvaluesChanged();
+					renderer.editPanel.updateParticleCode();
+					renderer.editPanel.particleEditPerformed();
 					renderer.mainWindow.reset = true;
 				}
 			}
@@ -90,11 +100,13 @@ public class AlphaEntryPanel extends JPanel {
 		btn_Add = new JButton("+");
 		btn_Add.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				Undo.performParticleOperation("added Alpha entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.newAlphaEntry(aEntry);
 				renderer.editPanel.particleEditPanel.updateAlphaPanels();
-				renderer.editPanel.particleEditPanel.alphaEntriesFromList();
+				//renderer.editPanel.particleEditPanel.alphaEntriesFromList();
 				renderer.editPanel.updateParticleCode();
 				renderer.editPanel.particleEditPerformed();
+				
 			}
 		});
 		
@@ -107,12 +119,13 @@ public class AlphaEntryPanel extends JPanel {
 		btn_Remove = new JButton("-");
 		btn_Remove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("removed Alpha entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.panel_AlphaEntries.remove(AlphaEntryPanel.this);
 				renderer.editPanel.particleEditPanel.removeAlphaEntry(aEntry);
 				renderer.editPanel.particleEditPanel.updateAlphaPanels();
-				renderer.editPanel.particleEditPanel.alphaEntriesFromList();
+				//renderer.editPanel.particleEditPanel.alphaEntriesFromList();
 				renderer.editPanel.updateParticleCode();
-				renderer.editPanel.particleEditPerformed();
+				renderer.editPanel.particleEditPerformed();				
 			}
 		});
 		panel_23.add(btn_Remove);
@@ -126,9 +139,10 @@ public class AlphaEntryPanel extends JPanel {
 		btn_moveUp = new JButton("\u02C4");
 		btn_moveUp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("moved Alpha entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.moveAlphaEntry(AlphaEntryPanel.this, -1);
 				renderer.editPanel.updateParticleCode();
-				renderer.editPanel.particleEditPerformed();
+				renderer.editPanel.particleEditPerformed();				
 			}
 		});
 		panel.add(btn_moveUp, BorderLayout.NORTH);
@@ -139,9 +153,11 @@ public class AlphaEntryPanel extends JPanel {
 		btn_moveDown = new JButton("\u02C5");
 		btn_moveDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Undo.performParticleOperation("moved Alpha entry", OperationType.EDIT);
 				renderer.editPanel.particleEditPanel.moveAlphaEntry(AlphaEntryPanel.this, 1);
 				renderer.editPanel.updateParticleCode();
 				renderer.editPanel.particleEditPerformed();
+
 			}
 		});
 		panel.add(btn_moveDown, BorderLayout.SOUTH);

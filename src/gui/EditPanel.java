@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.util.ArrayList;
 
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -33,6 +34,9 @@ import java.awt.FlowLayout;
 import javax.swing.BoxLayout;
 
 import parser.Parser;
+import util.Undo;
+import util.Util;
+import util.Undo.OperationType;
 import entitytypes.FXListType;
 import entitytypes.FXListType.ParticleSystemEntry;
 import entitytypes.ParticleSystemType;
@@ -60,7 +64,7 @@ public class EditPanel extends JPanel {
 	public ParticleEditPanel particleEditPanel;
 	private JButton btnAddParticlesystem;
 	//private JComboBox<String> cb_FXLists;
-	private boolean ignoreChanges;
+	public boolean ignoreChanges;
 	
 	/**
 	 * Create the panel.
@@ -99,12 +103,14 @@ public class EditPanel extends JPanel {
 					
 		btnAddParticlesystem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				Undo.performFXOperation("Add ParticleSystem", OperationType.EDIT);
 				ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry();
 				entry.Name = Main.ParticleSystemNames.get(0);
 				Main.activeFXListType.ParticleSystems.add(entry);
 				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
 				panel_ParticleEntries.add(pse_panel);
 				updateFXGUI();
+				
 				fxEditPerformed();
 			}
 		});
@@ -136,6 +142,15 @@ public class EditPanel extends JPanel {
 		});
 		panel.add(btnReset);
 		
+		JButton btnFXtoClipboard = new JButton("to clipboard");
+		btnFXtoClipboard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Util.toClipboard(Main.activeFXListType.getFormattedCode(Main.activeFXName()));
+			}
+		});
+		btnFXtoClipboard.setToolTipText("Copy formatted Code to clipboard to manually paste into an ini file");
+		panel.add(btnFXtoClipboard);
+		
 		JPanel panel_2 = new JPanel();
 		panel_fx.add(panel_2, BorderLayout.NORTH);
 		
@@ -152,6 +167,8 @@ public class EditPanel extends JPanel {
 						if (type != null) {
 							Main.FXListTypes.remove((String)e.getOldValue());
 							Main.FXListTypes.put((String)e.getNewValue(), type);
+							if (Main.work_FXListTypes.containsKey((String)e.getOldValue()))
+									Main.work_FXListTypes.remove((String)e.getOldValue());
 							Main.updateFXListNames();
 							renderer.browsePanel.setIgnoreChanges(true);
 							renderer.browsePanel.browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
@@ -218,7 +235,17 @@ public class EditPanel extends JPanel {
 		});
 		panel_4.add(btnResetCodeP);
 		
+		JButton btnPtoClipboard = new JButton("to clipboard");
+		btnPtoClipboard.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {				
+				Util.toClipboard(Main.activeParticleSystemType.getFormattedCode(Main.activeParticleName()));
+			}
+		});
+		btnPtoClipboard.setToolTipText("Copy formatted Code to clipboard to manually paste into an ini file");
+		panel_4.add(btnPtoClipboard);
+		
 		cb_ParticleSystems = new JComboBox();
+		cb_ParticleSystems.setModel(new DefaultComboBoxModel<String>());
 		cb_ParticleSystems.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED && cb_ParticleSystems.getSelectedIndex() != -1) {
@@ -269,6 +296,7 @@ public class EditPanel extends JPanel {
 		this.btnReset.setEnabled(b);
 		this.btnAddParticlesystem.setEnabled(b);
 		this.txtFXName.setEditable(b);
+		
 	}
 	
 //	public void selectionChanged() {
@@ -287,25 +315,41 @@ public class EditPanel extends JPanel {
 	public void updateFXGUI() {
 		cb_ParticleSystems.removeAllItems();
 		panel_ParticleEntries.removeAll();
+		panel_ParticleEntries.revalidate();
+		panel_ParticleEntries.repaint();
 		FXListType type = Main.activeFXListType;
 		for (ParticleSystemEntry entry : type.ParticleSystems) {
 			if (Main.ParticleSystemTypes.containsKey(entry.Name)) {
-				entry.setVisible(true);
-				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
-				panel_ParticleEntries.add(pse_panel);
-				//--
-				cb_ParticleSystems.addItem(entry.Name);
+				//entry.setVisible(true);
+				if (!type.isTemporary()) {
+					ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
+					panel_ParticleEntries.add(pse_panel);
+				}
+				addToParticleSelection(entry.Name);
 				ParticleSystemType ptype = Main.getParticleSystem(entry.Name);
 				if (ptype.PerParticleAttachedSystem != null && !ptype.PerParticleAttachedSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.PerParticleAttachedSystem)) {
-					cb_ParticleSystems.addItem(ptype.PerParticleAttachedSystem);
+					addToParticleSelection(ptype.PerParticleAttachedSystem);
+					//We need to go deeper
+					if (Main.ParticleSystemTypes.containsKey(ptype.PerParticleAttachedSystem)) {
+						ParticleSystemType atype = Main.getParticleSystem(ptype.PerParticleAttachedSystem);
+						if (atype.PerParticleAttachedSystem != null && !atype.PerParticleAttachedSystem.equals("") && Main.ParticleSystemTypes.containsKey(atype.PerParticleAttachedSystem)) {
+							addToParticleSelection(ptype.PerParticleAttachedSystem);
+						}
+					}
+					
 				}
 				if (ptype.SlaveSystem != null && !ptype.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(ptype.SlaveSystem)) {
-					cb_ParticleSystems.addItem(ptype.SlaveSystem);
+					addToParticleSelection(ptype.SlaveSystem);
 				}	
 			}
 		}
 	}
 	
+	private void addToParticleSelection(String name) {
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cb_ParticleSystems.getModel();
+		if (model.getIndexOf(name) == -1) cb_ParticleSystems.addItem(name);
+	}
+
 	public void updateParticleGUI() {
 		particleEditPanel.insertGuiValues();
 	}
@@ -315,10 +359,12 @@ public class EditPanel extends JPanel {
 	}
 	
 	public void parseParticleCode() {
+		Undo.performParticleOperation("parsed Code", OperationType.EDIT);
 		ParticleSystemType ptype = Parser.parseParticleSystemCode(this.editor_Particle.getText(), (String)cb_ParticleSystems.getSelectedItem());
 		Main.activeParticleSystemType = ptype;
 		particleEditPanel.insertGuiValues();
 		particleEditPerformed();
+		
 	}
 	
 	public void updateFXCode() {
@@ -326,6 +372,7 @@ public class EditPanel extends JPanel {
 	}
 	
 	public void parseFXCode() {
+		Undo.performFXOperation("Parse Code", OperationType.EDIT);
 		cb_ParticleSystems.removeAllItems();
 		FXListType type = Parser.parseFXListCode(this.editor_FX.getText(), (String)this.txtFXName.getValue());
 		Main.activeFXListType = type;
@@ -333,7 +380,7 @@ public class EditPanel extends JPanel {
 		//panel_ParticleEntries.updateUI();
 		for (ParticleSystemEntry entry : type.ParticleSystems) {
 			if (Main.ParticleSystemTypes.containsKey(entry.Name)) {
-				entry.setVisible(true);
+				//entry.setVisible(true);
 				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
 				panel_ParticleEntries.add(pse_panel);
 				cb_ParticleSystems.addItem(entry.Name);
@@ -347,6 +394,7 @@ public class EditPanel extends JPanel {
 			}
 		}
 		fxEditPerformed();
+		
 	}
 
 	public void setFXTextAuto(String text) {

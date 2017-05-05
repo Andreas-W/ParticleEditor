@@ -35,7 +35,8 @@ public class ParticleSystem extends Entity{
 	public float StartSize = 0;
 	public ArrayList<SimpleEntry<Integer, Vector3f>> colors;
 	
-	public ParticleSystem slaveSystem = null;
+	public ParticleSystem slave = null;
+	public ParticleSystem master = null;
 	
 	private int nextBurst = 0;
 	
@@ -46,6 +47,7 @@ public class ParticleSystem extends Entity{
 	private int spawnDelay = 0;
 	
 	private StreakParticle prevParticle = null;
+
 	
 	public ParticleSystem(ParticleSystemType type, int spawnDelay) {
 		this.type = type;
@@ -56,7 +58,9 @@ public class ParticleSystem extends Entity{
 	public void init(Engine engine) {
 		super.init(engine);
 		if (this.type == null) return;
-		InitialDelay = MathUtil.getRandomInt(type.InitialDelay) + spawnDelay;
+		if (this.master == null)  InitialDelay = MathUtil.getRandomInt(type.InitialDelay) + spawnDelay;
+		else this.InitialDelay = this.master.InitialDelay;
+		
 		StartSizeRate = MathUtil.getRandomFloat(type.StartSizeRate);
 		colors = new ArrayList<SimpleEntry<Integer, Vector3f>>();
 		if (type.Color1 != null){ colors.add(new SimpleEntry<Integer, Vector3f>(type.Color1.frame, type.Color1.toVec()));
@@ -69,14 +73,18 @@ public class ParticleSystem extends Entity{
 		if (type.Color8 != null && type.Color8.frame > type.Color7.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color8.frame, type.Color8.toVec()));
 		if (type.Color9 != null && type.Color9.frame > type.Color8.frame) {colors.add(new SimpleEntry<Integer, Vector3f>(type.Color9.frame, type.Color9.toVec()));	}}}}}}}}}
 		this.texture = engine.renderer.TextureMap.get(this.type.ParticleName.substring(0, this.type.ParticleName.length()-4));
-		if (type.SlaveSystem != null && !type.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(type.SlaveSystem)) {
-			ParticleSystemType ptype = Main.getParticleSystem(type.SlaveSystem);
-			ParticleSystem psys = new ParticleSystem(ptype, spawnDelay);
-			Vector3d position = this.getPosition();
-			if (type.SlavePosOffset != null)position.add(type.SlavePosOffset.toVec());
-			psys.setPosition(position);
-			engine.addEntity(psys);
-			psys.init(engine);
+		if (this.master == null) { //Can only have slave if this is not already a slave system
+			if (type.SlaveSystem != null && !type.SlaveSystem.equals("") && Main.ParticleSystemTypes.containsKey(type.SlaveSystem)) {
+				ParticleSystemType ptype = Main.getParticleSystem(type.SlaveSystem);
+				ParticleSystem psys = new ParticleSystem(ptype, spawnDelay);
+				this.slave = psys;
+				psys.master = this;
+				Vector3d position = this.getPosition();
+				if (type.SlavePosOffset != null)position.add(type.SlavePosOffset.toVec());
+				psys.setPosition(position);
+				engine.addEntity(psys);
+				psys.init(engine);
+			}
 		}
 	}
 	
@@ -87,14 +95,14 @@ public class ParticleSystem extends Entity{
 			return;
 		}
 		
-//		if (parent != null) {
-//			this.setPosition(parent.getPosition());
-//			//TODO: Offsets
-//			if (parent.dead) {
-//				this.dead = true;
-//				return;
-//			}
-//		}
+		//Slaved systems' particles are spawned by the master. We still tick it's timer
+		if (this.master != null) {
+			super.update();
+			if (type.SystemLifetime != 0 && this.timer > type.SystemLifetime) {
+				this.dead = true;
+			}
+			return;
+		}
 		
 		if (InitialDelay > 0) {
 			InitialDelay--;
@@ -128,6 +136,26 @@ public class ParticleSystem extends Entity{
 						if (prevParticle != null && !prevParticle.dead) part.prev = prevParticle;
 						prevParticle = part;
 						engine.addEntity(part);
+					}
+					
+					if (this.slave != null) { //Spawn another particle for the slave						
+						dir = new Vector3d(0.0, 0.0, 0.0);						
+						offset = getSpawnPosition(dir);
+						velocity = getSpawnVelocity(dir);			
+						
+						position = new Vector3d(offset);
+						position.add(this.getPosition());
+						position.add(this.type.SlavePosOffset.toVec());
+
+						if (this.type.Type == e_Type.PARTICLE) {
+							Particle part = new Particle(this.slave, position, offset, velocity, StartSize);
+							engine.addEntity(part);
+						}else if (this.type.Type == e_Type.STREAK) {
+							StreakParticle part = new StreakParticle(this.slave, position, offset, velocity, StartSize);
+							if (slave.prevParticle != null && !slave.prevParticle.dead) part.prev = slave.prevParticle;
+							slave.prevParticle = part;
+							engine.addEntity(part);
+						}
 					}
 					
 					StartSize = Math.min(StartSize + StartSizeRate, 50.0f);

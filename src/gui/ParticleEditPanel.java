@@ -12,6 +12,7 @@ import javax.swing.BoxLayout;
 
 import java.awt.Component;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -53,7 +54,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.UIManager;
 
 import util.TextureListCellRenderer;
+import util.Undo;
 import util.Util;
+import util.Undo.OperationType;
 
 import com.sun.j3d.utils.image.TextureLoader;
 
@@ -194,17 +197,27 @@ public class ParticleEditPanel extends JPanel {
 			public void propertyChange(PropertyChangeEvent e) {
 				//System.out.println("PropertyChanged: "+((Component)e.getSource()).getName() + " - "+e.getPropertyName());
 				if (!e.getNewValue().equals(e.getOldValue()) && e.getPropertyName().equals("value") && Main.activeParticleSystemType != null && !ignoreChanges) {
+					
+					String name = ((JComponent)e.getSource()).getName();
+					if (name == null) name = "changed unnamed value";
+					else name = "changed "+name;
+					Undo.performParticleOperation(name, OperationType.EDIT);
 					updateParticleValues();
 					renderer.mainWindow.reset = true;
 				}
 			}
 		};
-		particleCheckboxChangedListener = new ItemListener() {		
+		particleCheckboxChangedListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (Main.activeParticleSystemType != null && !ignoreChanges) {
-					updateParticleValues();
+					
+					String name = ((JComponent)e.getSource()).getName();
+					if (name == null) name = "changed unnamed value";
+					else name = "changed "+name;
+					Undo.performParticleOperation(name, OperationType.EDIT);
 					//renderer.mainWindow.reset = true;
+					updateParticleValues();
 				}
 			}
 		};
@@ -214,7 +227,7 @@ public class ParticleEditPanel extends JPanel {
 				if (!ignoreChanges) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
 						if (((JComboBox)e.getSource()).getSelectedIndex() == -1) {							
-							NewParticleDialog dialog = new NewParticleDialog(renderer, (String)e.getItem());
+							NewParticleDialog dialog = new NewParticleDialog(renderer, (String)e.getItem(), "");
 							int result = dialog.showDialog();
 							if (result == 1) {
 								ignoreChanges = true;
@@ -270,11 +283,33 @@ public class ParticleEditPanel extends JPanel {
 		panel_3.add(lblType);
 		
 		cbParticleType = new JComboBox();
+		cbParticleType.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
+					Undo.performParticleOperation("changed ParticleType", OperationType.EDIT);
+					ParticleSystemType type = Main.activeParticleSystemType;
+					type.Type = (e_Type) cbParticleType.getSelectedItem();
+					renderer.editPanel.particleEditPerformed();
+					renderer.mainWindow.reset = true;
+				}
+			}
+		});
 		panel_3.add(cbParticleType);
 		cbParticleType.setModel(new DefaultComboBoxModel(e_Type.values()));
 		cbParticleType.setSelectedIndex(0);
 		
 		cbShader = new JComboBox();
+		cbShader.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
+					Undo.performParticleOperation("changed Shader", OperationType.EDIT);
+					ParticleSystemType type = Main.activeParticleSystemType;
+					type.Shader = (e_Shader) cbShader.getSelectedItem();
+					renderer.editPanel.particleEditPerformed();
+					renderer.mainWindow.reset = true;
+				}
+			}
+		});
 		panel_3.add(cbShader);
 		cbShader.setModel(new DefaultComboBoxModel(e_Shader.values()));
 		
@@ -304,10 +339,12 @@ public class ParticleEditPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				
 				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
+					Undo.performParticleOperation("changed Texture", OperationType.EDIT);
 					String name = (String) cbTexture.getSelectedItem();
 					ParticleSystemType type = Main.activeParticleSystemType;
 					type.ParticleName = name+".tga";
 					renderer.editPanel.particleEditPerformed();
+					
 					renderer.mainWindow.reset = true;
 					renderer.texturePreview.setVisible(false);
 				}
@@ -485,11 +522,11 @@ public class ParticleEditPanel extends JPanel {
 		JLabel lblColorscale = new JLabel("ColorScale:");
 		panel_20.add(lblColorscale);
 		
-		tfColorScaleMin = new ValueTextField(ValueTextField.VALUE_INT);
+		tfColorScaleMin = new ValueTextField(ValueTextField.VALUE_FLOAT);
 		tfColorScaleMin.setColumns(3);
 		panel_20.add(tfColorScaleMin);
 		
-		tfColorScaleMax = new ValueTextField(ValueTextField.VALUE_INT);
+		tfColorScaleMax = new ValueTextField(ValueTextField.VALUE_FLOAT);
 		tfColorScaleMax.setColumns(3);
 		panel_20.add(tfColorScaleMax);
 		
@@ -1002,7 +1039,11 @@ public class ParticleEditPanel extends JPanel {
 		tfLifeTimeMax.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfLifeTimeMin.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfSizeMax.addPropertyChangeListener("value", particleValuesChangedListener);
-		tfSizeMin.addPropertyChangeListener("value", particleValuesChangedListener);
+		tfSizeMin.addPropertyChangeListener("value", particleValuesChangedListener);		
+		tfSizeRateMin.addPropertyChangeListener("value", particleValuesChangedListener);
+		tfSizeRateMax.addPropertyChangeListener("value", particleValuesChangedListener);
+		tfSizeRateDampMin.addPropertyChangeListener("value", particleValuesChangedListener);
+		tfSizeRateDampMax.addPropertyChangeListener("value", particleValuesChangedListener);		
 		tfSlaveX.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfSlaveY.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfSlaveZ.addPropertyChangeListener("value", particleValuesChangedListener);
@@ -1042,6 +1083,9 @@ public class ParticleEditPanel extends JPanel {
 		tfVolLineStartZ.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfVolSphereRadius.addPropertyChangeListener("value", particleValuesChangedListener);
 		
+		chckbxHollow.addItemListener(particleCheckboxChangedListener);
+		chckbxEmitAboveGround.addItemListener(particleCheckboxChangedListener);
+		chckbxIsoneshot.addItemListener(particleCheckboxChangedListener);
 		chckbxGroundAligned.addItemListener(particleCheckboxChangedListener);
 		chckbxParticleuptowardsemitter.addItemListener(particleCheckboxChangedListener);
 		
@@ -1049,7 +1093,9 @@ public class ParticleEditPanel extends JPanel {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				if (!ignoreChanges) {
+					Undo.performParticleOperation("changed AttachedSystem", OperationType.EDIT);
 					cbAttachedSystem.setEnabled(chAttachedSystem.isSelected());
+					
 					updateParticleValues();
 				}
 			}
@@ -1058,7 +1104,8 @@ public class ParticleEditPanel extends JPanel {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!ignoreChanges) {
-					cbSlavedSystem.setEnabled(chSlavedSystem.isSelected());
+					Undo.performParticleOperation("changed SlavedSystem", OperationType.EDIT);
+					cbSlavedSystem.setEnabled(chSlavedSystem.isSelected());				
 					updateParticleValues();
 				}
 			}
@@ -1071,9 +1118,11 @@ public class ParticleEditPanel extends JPanel {
 					if (e.getStateChange() == ItemEvent.DESELECTED) {
 						velPrev = (e_VelocityType) e.getItem();
 					} else if (e.getStateChange() == ItemEvent.SELECTED) {
+						Undo.performParticleOperation("changed VelocityType", OperationType.EDIT);
 						copyVelValues(velPrev, (e_VelocityType)e.getItem());
 						Main.activeParticleSystemType.VelocityType = (e_VelocityType)e.getItem();
 						renderer.editPanel.particleEditPerformed();
+						
 						insertGuiValues();
 					}
 				}
@@ -1083,8 +1132,10 @@ public class ParticleEditPanel extends JPanel {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
+					Undo.performParticleOperation("changed VolumeType", OperationType.EDIT);
 					Main.activeParticleSystemType.VolumeType = (e_VolumeType)e.getItem();
 					renderer.editPanel.particleEditPerformed();
+					
 					insertGuiValues();
 				}
 			}
@@ -1205,104 +1256,7 @@ public class ParticleEditPanel extends JPanel {
 		}
 		ignoreChanges = false;
 	}
-	public void newColorEntry(colorEntry pos) {
-		ParticleSystemType type = Main.activeParticleSystemType;
-		int i = colorEntryList.indexOf(pos)+1;
-		colorEntry entry = type.new colorEntry(0, 0, 0, 0);
-		colorEntryList.add(i, entry);
-		ColorEntryPanel cPanel = new ColorEntryPanel(renderer, entry);
-		panel_ColorEntries.add(cPanel, i);
-	}
-	public void newAlphaEntry(alphaEntry pos) {
-		ParticleSystemType type = Main.activeParticleSystemType;
-		int i = alphaEntryList.indexOf(pos)+1;
-		alphaEntry entry = type.new alphaEntry(0, 0, 0);
-		alphaEntryList.add(i, entry);
-		AlphaEntryPanel aPanel = new AlphaEntryPanel(renderer, entry);
-		panel_AlphaEntries.add(aPanel, i);
-	}
-	
-	public void alphaEntriesToList(){
-		ParticleSystemType type = Main.activeParticleSystemType;
-		this.alphaEntryList = new ArrayList<ParticleSystemType.alphaEntry>();
-		if (type.Alpha1 != null) alphaEntryList.add(type.Alpha1);
-		if (type.Alpha2 != null) alphaEntryList.add(type.Alpha2);
-		if (type.Alpha3 != null) alphaEntryList.add(type.Alpha3);
-		if (type.Alpha4 != null) alphaEntryList.add(type.Alpha4);
-		if (type.Alpha5 != null) alphaEntryList.add(type.Alpha5);
-		if (type.Alpha6 != null) alphaEntryList.add(type.Alpha6);
-		if (type.Alpha7 != null) alphaEntryList.add(type.Alpha7);
-		if (type.Alpha8 != null) alphaEntryList.add(type.Alpha8);
-		if (type.Alpha9 != null) alphaEntryList.add(type.Alpha9);
-	}
-	public void alphaEntriesFromList(){
-		ParticleSystemType type = Main.activeParticleSystemType;
-		int i = 0;
-		if (i < alphaEntryList.size()) type.Alpha1 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha2 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha3 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha4 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha5 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha6 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha7 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha8 = alphaEntryList.get(i++); else return;
-		if (i < alphaEntryList.size()) type.Alpha9 = alphaEntryList.get(i++); else return;
-	}
-	public void colorEntriesToList(){
-		ParticleSystemType type = Main.activeParticleSystemType;
-		this.colorEntryList = new ArrayList<ParticleSystemType.colorEntry>();
-		if (type.Color1 != null) colorEntryList.add(type.Color1);
-		if (type.Color2 != null) colorEntryList.add(type.Color2);
-		if (type.Color3 != null) colorEntryList.add(type.Color3);
-		if (type.Color4 != null) colorEntryList.add(type.Color4);
-		if (type.Color5 != null) colorEntryList.add(type.Color5);
-		if (type.Color6 != null) colorEntryList.add(type.Color6);
-		if (type.Color7 != null) colorEntryList.add(type.Color7);
-		if (type.Color8 != null) colorEntryList.add(type.Color8);
-		if (type.Color9 != null) colorEntryList.add(type.Color9);
 
-	}
-	public void colorEntriesFromList(){
-		ParticleSystemType type = Main.activeParticleSystemType;
-		int i = 0;
-		if (i < colorEntryList.size()) type.Color1 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color2 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color3 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color4 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color5 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color6 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color7 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color8 = colorEntryList.get(i++); else return;
-		if (i < colorEntryList.size()) type.Color9 = colorEntryList.get(i++); else return;
-	}
-	
-	public void createAlphaEntryPanels() {
-		panel_AlphaEntries.removeAll();
-		for (alphaEntry entry : alphaEntryList) {
-			AlphaEntryPanel aPanel = new AlphaEntryPanel(renderer, entry);
-			panel_AlphaEntries.add(aPanel);
-		}
-		updateAlphaPanels();
-	}
-	
-	public void removeAlphaEntry(alphaEntry aEntry) {
-		alphaEntryList.remove(aEntry);
-		alphaEntriesFromList();
-	}
-	
-	public void createColorEntryPanels() {
-		panel_ColorEntries.removeAll();
-		for (colorEntry entry : colorEntryList) {
-			ColorEntryPanel cPanel = new ColorEntryPanel(renderer, entry);
-			panel_ColorEntries.add(cPanel);
-		}
-		updateAlphaPanels();
-	}
-	
-	public void removeColorEntry(colorEntry cEntry) {
-		colorEntryList.remove(cEntry);
-		colorEntriesFromList();
-	}
 	
 //	public void loadValues() {
 //		
@@ -1354,8 +1308,8 @@ public class ParticleEditPanel extends JPanel {
 			tfSlaveY.setValue(type.SlavePosOffset.y);
 			tfSlaveZ.setValue(type.SlavePosOffset.z);
 		}
-		tfStartSizeRateMax.setValue(type.StartSizeRate[0]);
-		tfStartSizeRateMin.setValue(type.StartSizeRate[1]);
+		tfStartSizeRateMin.setValue(type.StartSizeRate[0]);
+		tfStartSizeRateMax.setValue(type.StartSizeRate[1]);
 		tfSystemLifeTime.setValue(type.SystemLifetime);
 		cbVelocityType.setSelectedItem(type.VelocityType);
 		switch (type.VelocityType) {
@@ -1430,6 +1384,7 @@ public class ParticleEditPanel extends JPanel {
 		if (type.SlaveSystem != null && type.SlavePosOffset != null && !type.SlaveSystem.equals("")) {
 			chSlavedSystem.setSelected(true);
 			cbSlavedSystem.setEnabled(true);
+			cbSlavedSystem.setSelectedItem(type.SlaveSystem);
 			tfSlaveX.setEnabled(true);
 			tfSlaveY.setEnabled(true);
 			tfSlaveZ.setEnabled(true);
@@ -1474,8 +1429,8 @@ public class ParticleEditPanel extends JPanel {
 		type.BurstCount[1] = (int) tfBurstCountMax.getValue();
 		type.BurstDelay[0] = (int) tfBurstDelayMin.getValue();
 		type.BurstDelay[1] = (int) tfBurstDelayMax.getValue();
-		type.ColorScale[0] = (int) tfColorScaleMin.getValue();
-		type.ColorScale[1] = (int) tfColorScaleMax.getValue();
+		type.ColorScale[0] = (float) tfColorScaleMin.getValue();
+		type.ColorScale[1] = (float) tfColorScaleMax.getValue();
 		type.DriftVelocity.x = (float) tfDriftVelX.getValue();
 		type.DriftVelocity.y = (float) tfDriftVelY.getValue();
 		type.DriftVelocity.z = (float) tfDriftVelZ.getValue();
@@ -1488,7 +1443,7 @@ public class ParticleEditPanel extends JPanel {
 		type.IsEmitAboveGroundOnly = chckbxEmitAboveGround.isSelected();
 		type.IsGroundAligned = chckbxGroundAligned.isSelected();
 		type.IsHollow = chckbxHollow.isSelected();
-		type.IsOneShot = chckbxHollow.isSelected();
+		type.IsOneShot = chckbxIsoneshot.isSelected();
 		type.IsParticleUpTowardsEmitter = chckbxParticleuptowardsemitter.isSelected();
 		if (chAttachedSystem.isSelected()) type.PerParticleAttachedSystem = (String) cbAttachedSystem.getSelectedItem();
 		else type.PerParticleAttachedSystem = null;
@@ -1505,6 +1460,8 @@ public class ParticleEditPanel extends JPanel {
 		type.SizeRate[1] = (float) tfSizeRateMax.getValue();
 		type.SizeRateDamping[0] = (float) tfSizeRateDampMin.getValue();
 		type.SizeRateDamping[1] = (float) tfSizeRateDampMax.getValue();
+		type.StartSizeRate[0] = (float) tfStartSizeRateMin.getValue();
+		type.StartSizeRate[1] = (float) tfStartSizeRateMax.getValue();
 		type.SystemLifetime = (int) tfSystemLifeTime.getValue();
 		
 		type.VelocityType = (e_VelocityType) cbVelocityType.getSelectedItem();
@@ -1547,6 +1504,124 @@ public class ParticleEditPanel extends JPanel {
 		renderer.editPanel.particleEditPerformed();
 	}
 	
+	
+	public void newColorEntry(colorEntry pos) {
+		ParticleSystemType type = Main.activeParticleSystemType;
+		int i = colorEntryList.indexOf(pos)+1;
+		colorEntry entry = type.new colorEntry(0, 0, 0, 0);
+		colorEntryList.add(i, entry);
+		ColorEntryPanel cPanel = new ColorEntryPanel(renderer, entry);
+		panel_ColorEntries.add(cPanel, i);
+		colorEntriesFromList();
+	}
+	public void newAlphaEntry(alphaEntry pos) {
+		ParticleSystemType type = Main.activeParticleSystemType;
+		int i = alphaEntryList.indexOf(pos)+1;
+		alphaEntry entry = type.new alphaEntry(0, 0, 0);
+		alphaEntryList.add(i, entry);
+		AlphaEntryPanel aPanel = new AlphaEntryPanel(renderer, entry);
+		panel_AlphaEntries.add(aPanel, i);
+		alphaEntriesFromList();
+	}
+	
+	public void alphaEntriesToList(){
+		ParticleSystemType type = Main.activeParticleSystemType;
+		this.alphaEntryList = new ArrayList<ParticleSystemType.alphaEntry>();
+		if (type.Alpha1 != null) alphaEntryList.add(type.Alpha1);
+		if (type.Alpha2 != null) alphaEntryList.add(type.Alpha2);
+		if (type.Alpha3 != null) alphaEntryList.add(type.Alpha3);
+		if (type.Alpha4 != null) alphaEntryList.add(type.Alpha4);
+		if (type.Alpha5 != null) alphaEntryList.add(type.Alpha5);
+		if (type.Alpha6 != null) alphaEntryList.add(type.Alpha6);
+		if (type.Alpha7 != null) alphaEntryList.add(type.Alpha7);
+		if (type.Alpha8 != null) alphaEntryList.add(type.Alpha8);
+		if (type.Alpha9 != null) alphaEntryList.add(type.Alpha9);
+	}
+	public void alphaEntriesFromList(){
+		ParticleSystemType type = Main.activeParticleSystemType;
+		//type.Alpha1 = null;
+		type.Alpha2 = null;
+		type.Alpha3 = null;
+		type.Alpha4 = null;
+		type.Alpha5 = null;
+		type.Alpha6 = null;
+		type.Alpha7 = null;
+		type.Alpha8 = null;
+		type.Alpha9 = null;		
+		int i = 0;
+		if (i < alphaEntryList.size()) type.Alpha1 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha2 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha3 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha4 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha5 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha6 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha7 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha8 = alphaEntryList.get(i++); else return;
+		if (i < alphaEntryList.size()) type.Alpha9 = alphaEntryList.get(i++); else return;
+	}
+	public void colorEntriesToList(){
+		ParticleSystemType type = Main.activeParticleSystemType;
+		this.colorEntryList = new ArrayList<ParticleSystemType.colorEntry>();
+		if (type.Color1 != null) colorEntryList.add(type.Color1);
+		if (type.Color2 != null) colorEntryList.add(type.Color2);
+		if (type.Color3 != null) colorEntryList.add(type.Color3);
+		if (type.Color4 != null) colorEntryList.add(type.Color4);
+		if (type.Color5 != null) colorEntryList.add(type.Color5);
+		if (type.Color6 != null) colorEntryList.add(type.Color6);
+		if (type.Color7 != null) colorEntryList.add(type.Color7);
+		if (type.Color8 != null) colorEntryList.add(type.Color8);
+		if (type.Color9 != null) colorEntryList.add(type.Color9);
+
+	}
+	public void colorEntriesFromList(){
+		ParticleSystemType type = Main.activeParticleSystemType;
+		type.Color2 = null;
+		type.Color3 = null;
+		type.Color4 = null;
+		type.Color5 = null;
+		type.Color6 = null;
+		type.Color7 = null;
+		type.Color8 = null;
+		type.Color9 = null;
+		int i = 0;
+		if (i < colorEntryList.size()) type.Color1 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color2 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color3 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color4 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color5 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color6 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color7 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color8 = colorEntryList.get(i++); else return;
+		if (i < colorEntryList.size()) type.Color9 = colorEntryList.get(i++); else return;
+	}
+	
+	public void createAlphaEntryPanels() {
+		panel_AlphaEntries.removeAll();
+		for (alphaEntry entry : alphaEntryList) {
+			AlphaEntryPanel aPanel = new AlphaEntryPanel(renderer, entry);
+			panel_AlphaEntries.add(aPanel);
+		}
+		updateAlphaPanels();
+	}
+	
+	public void removeAlphaEntry(alphaEntry aEntry) {
+		alphaEntryList.remove(aEntry);
+		alphaEntriesFromList();
+	}
+	
+	public void createColorEntryPanels() {
+		panel_ColorEntries.removeAll();
+		for (colorEntry entry : colorEntryList) {
+			ColorEntryPanel cPanel = new ColorEntryPanel(renderer, entry);
+			panel_ColorEntries.add(cPanel);
+		}
+		updateColorPanels();
+	}
+	
+	public void removeColorEntry(colorEntry cEntry) {
+		colorEntryList.remove(cEntry);
+		colorEntriesFromList();
+	}
 	
 	public void updateAlphaPanels() {
 		int size = alphaEntryList.size();
@@ -1618,7 +1693,7 @@ public class ParticleEditPanel extends JPanel {
         //Process the results.
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            String texturename = Util.getTrimmedFilename(file);
+            String texturename = Util.getTrimmedFilename(file).toLowerCase();
 			if (!renderer.TextureMap.containsKey(texturename)) {
 				try {
 					BufferedImage image = ImageIO.read(file);
