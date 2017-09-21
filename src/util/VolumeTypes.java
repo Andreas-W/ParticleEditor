@@ -40,7 +40,7 @@ public class VolumeTypes {
 			}else {
 				r = MathUtil.getRandomFloat(0.0f, sys.type.VolCylinderRadius);
 			}
-			z = MathUtil.rand.nextFloat()*sys.type.VolCylinderLength;
+			z = (MathUtil.rand.nextFloat()*sys.type.VolCylinderLength)-(sys.type.VolCylinderLength*0.5f);
 			dir.x = 1.0;
 			dir.y = 0.0;
 			dir.z = 0.0;

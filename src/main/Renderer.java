@@ -9,8 +9,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -34,6 +39,7 @@ import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.View;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -54,6 +60,10 @@ import util.Util;
 import net.nikr.dds.DDSImageReader;
 import net.nikr.dds.DDSImageReaderSpi;
 
+import com.sun.j3d.loaders.IncorrectFormatException;
+import com.sun.j3d.loaders.ParsingErrorException;
+import com.sun.j3d.loaders.Scene;
+import com.sun.j3d.loaders.objectfile.ObjectFile;
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
 import com.sun.j3d.utils.geometry.Box;
 import com.sun.j3d.utils.geometry.ColorCube;
@@ -82,6 +92,8 @@ public class Renderer {
 	//public BranchGroup newParticleGroup = new BranchGroup();
 	public BranchGroup newParticleGroup = new BranchGroup();
 	
+	public TransformGroup tgModel = new TransformGroup();
+	
 	private TransformGroup tgGround = new TransformGroup();
 	private Shape3D ground;
 	private Background background;
@@ -89,6 +101,8 @@ public class Renderer {
 	public TexturePreviewFrame texturePreview;
 	
 	public SimpleUniverse universe;
+	
+	public HashMap<String, Scene> models = new HashMap<String, Scene>();
 
 	//GUI ELEMENTS
 	//---------------
@@ -247,6 +261,8 @@ public class Renderer {
 		ground.setAppearance(ap);
 		
 		setupGround();
+		setupModels(); //TODO
+		
 		tgGround.addChild(ground);
 		tgGround.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		sceneGroup.addChild(tgGround);
@@ -264,6 +280,54 @@ public class Renderer {
 		universe.addBranchGraph(particleGroup);
 	}
 	
+	public void setupModels() {
+		
+		File dir = new File("models");
+		File[] list = dir.listFiles(new FilenameFilter() { 
+            public boolean accept(File dir, String filename)
+                 { return filename.endsWith(".obj"); }
+		});
+		
+		for (File f : list) {
+		    try {
+		    	URL url = Paths.get(f.getAbsolutePath()).toUri().toURL();
+				ObjectFile loader = new ObjectFile(ObjectFile.TRIANGULATE | ObjectFile.STRIPIFY );//ObjectFile.RESIZE);
+				//Scene model = loader.load(new FileReader(modelPath));
+		    	Scene model = loader.load(url);
+		    	model.getSceneGroup().setCapability(BranchGroup.ALLOW_DETACH);
+				String name = f.getName().substring(0, f.getName().length()-4);
+				models.put(name, model);
+				
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IncorrectFormatException e) {
+				e.printStackTrace();
+			} catch (ParsingErrorException e) {
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 			
+		}
+		
+		Transform3D tModel = new Transform3D();
+		tModel.setScale(MathUtil.J3D_COORD_SCALE);		
+		tgModel = new TransformGroup(tModel);
+		tgModel.setCapability(TransformGroup.ALLOW_CHILDREN_EXTEND);
+		tgModel.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
+		tgModel.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+	    
+		this.tgGround.addChild(tgModel);
+
+	}
+	
+	public void showModel(String model) {
+		this.tgModel.removeAllChildren();
+		if (models.containsKey(model)) {
+			this.tgModel.addChild(models.get(model).getSceneGroup());
+		}
+	}
+
 	public void setupGround() {
 		
 		if (Config.GroundType == 1) { //Textured		
@@ -472,5 +536,16 @@ public class Renderer {
 		Main.activeParticleSystemType = type;
 		editPanel.updateParticleGUI();
 		editPanel.updateParticleCode();
+	}
+	
+	public void addNewParticleToLists(ParticleSystemType type, String name) {
+		editPanel.addToParticleSelection(name);
+		
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) editPanel.particleEditPanel.getCbAttachedSystem().getModel();
+		if (model.getIndexOf(name) == -1) editPanel.particleEditPanel.getCbAttachedSystem().addItem(name);
+		
+		DefaultComboBoxModel<String> model2 = (DefaultComboBoxModel<String>) editPanel.particleEditPanel.getCbSlavedSystem().getModel();
+		if (model2.getIndexOf(name) == -1) editPanel.particleEditPanel.getCbSlavedSystem().addItem(name);
+		
 	}
 }

@@ -65,6 +65,8 @@ import gui.filter.FilterPanel_Scale;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.border.BevelBorder;
+
 public class MainWindow extends JFrame {
 
 	
@@ -84,6 +86,9 @@ public class MainWindow extends JFrame {
 	private JCheckBox chckbxShowGround;
 	private JMenuItem miUndo;
 	private JMenuItem miRedo;
+	private JCheckBox chTrailMode;
+	private ValueTextField tfTrailSpeed;
+	public JComboBox cbModel;
 	/**
 	 * Create the frame.
 	 */
@@ -96,7 +101,7 @@ public class MainWindow extends JFrame {
 		});
 		this.renderer = rend;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 840, 338);
+		setBounds(100, 100, 1005, 338);
 		
 		//MENU BAR
 		//------------------------
@@ -405,6 +410,56 @@ public class MainWindow extends JFrame {
 		});
 		txt_ZOffset.setColumns(8);
 		panel_2.add(txt_ZOffset);
+		
+		JToolBar toolBar_2 = new JToolBar();
+		toolBar_2.setFloatable(false);
+		panel_1.add(toolBar_2);
+		
+		JPanel panel_3 = new JPanel();
+		toolBar_2.add(panel_3);
+		
+		chTrailMode = new JCheckBox("Trail");
+		panel_3.add(chTrailMode);
+		
+		JLabel lblSpeed = new JLabel("Speed:");
+		panel_3.add(lblSpeed);
+		
+		tfTrailSpeed = new ValueTextField(1);
+		tfTrailSpeed.setColumns(6);
+		panel_3.add(tfTrailSpeed);
+		
+		JToolBar toolBar_3 = new JToolBar();
+		panel_1.add(toolBar_3);
+		toolBar_3.setFloatable(false);
+		
+		JPanel panel_4 = new JPanel();
+		toolBar_3.add(panel_4);
+		
+		JLabel lblShowModel = new JLabel("Show Model:");
+		panel_4.add(lblShowModel);
+		
+		cbModel = new JComboBox();
+		cbModel.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				if (cbModel.getItemCount() >0 && cbModel.getSelectedIndex() >= 0) {
+					String model = (String)cbModel.getSelectedItem();
+					renderer.showModel(model);
+				}
+			}
+		});
+		cbModel.setMaximumRowCount(64);
+		panel_4.add(cbModel);
+		
+		fillModels();
+	}
+
+	private void fillModels() {
+		cbModel.removeAllItems();
+		cbModel.addItem("<None>");
+		for (String model : renderer.models.keySet()) {
+			cbModel.addItem(model);
+		}
+		cbModel.setSelectedIndex(0);
 	}
 
 	public void updateUndoText() {
@@ -518,4 +573,10 @@ public class MainWindow extends JFrame {
 	}
 
 
+	public JCheckBox getChTrailMode() {
+		return chTrailMode;
+	}
+	public ValueTextField getTfTrailSpeed() {
+		return tfTrailSpeed;
+	}
 }

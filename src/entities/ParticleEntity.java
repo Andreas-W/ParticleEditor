@@ -100,6 +100,12 @@ public abstract class ParticleEntity extends Entity {
 		this.posX += vel.x;
 		this.posY += vel.y;
 		this.posZ += vel.z;
+		
+		//EXHAUST MODE
+		if (this.engine.isTrailMode()) {
+			this.posX -= this.engine.getTrailSpeed() * (1.0f/30.0f);
+		}
+		//---
 
 		//-- Size
 		Size = Math.max(Size + SizeRate, MathUtil.TINY_FLOAT);

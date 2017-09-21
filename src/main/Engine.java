@@ -161,4 +161,12 @@ public class Engine extends Thread {
 	public void addEntity(Entity entity) {
 		activeEntities.add(entity);
 	}
+
+	public boolean isTrailMode() {
+		return this.renderer.mainWindow.getChTrailMode().isSelected();
+	}
+	
+	public int getTrailSpeed() {
+		return (int)this.renderer.mainWindow.getTfTrailSpeed().getValue();
+	}
 }

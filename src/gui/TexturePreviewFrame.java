@@ -41,6 +41,7 @@ public class TexturePreviewFrame extends JWindow {
 	public void showTexture(String textureName) {
 		Texture texture = renderer.TextureMap.get(textureName);
 		ImageComponent2D imgC = (ImageComponent2D) texture.getImage(0);
+		//imgC.setCapability(ImageComponent2D.ALLOW_IMAGE_READ);
 		int width = imgC.getWidth();
 		int height = imgC.getHeight();
 		int x = renderer.editPanel.getX()-width;

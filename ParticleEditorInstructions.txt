@@ -1,0 +1,65 @@
+How to create FX with the ParticleEditor
+----------------------------------------
+
+-) Browsing Particles/FX
+
+- The panel on the left shows a list of all currently loaded FXLists and Particles.
+- If you set up the folders with you're mods FXList/ParticleSystem .ini files, you can view any of your effects.
+- You can switch between viewing FX or single ParticleSystems.
+- Use the Filter Textfield to search for specific effects
+- 'Browse All' contains all loaded Particles/FX, 'Working Set' contains all modified or added Particles/FX
+
+
+-) Creating a new FX
+
+- Choose an FXList on the left and click 'clone' to create a copy
+- click 'new' to create a new empty one
+- you can also select an existing FX to modifiy it directly
+
+
+
+-) FX Edit Panel
+
+- On the right you can see the Edit Panel for the currently selected FX
+- it contains a (possibly empty) list of ParticleSystems for this FX (in FXList/Edit Values)
+- 'Add ParticleSystem' adds a new entry
+
+- ParticleSystem Entries correspond to the entries within an FXList in FXList.ini
+-- In the dropdown list you can choose which ParticleSystem to use
+-- The checkbox to the left can be used to hide/show this entry (this is only used within this editor)
+-- Right-click the checkbox, for some additional options
+
+- Right-click the dropdown-list:
+-- 'Duplicate this Entry' : Adds a new entry with the same ParticleSystem (the other values are currently not filled in yet)
+-- 'Add new ParticleSystem' : Allows you to create a new empty ParticleSystem for this position
+-- 'Clone ParticleSystem' : Create a new ParticleSystem from the currently chosen System
+
+-- the '[X]' button will remove the entry from the FX (not the actual ParticleSystem)
+
+
+-) Particle Edit Panel
+
+Click the 'Particle Systems' tab on the top right side
+Here you can edit ParticleSystems.
+
+The dropdown-list at the top contains all the ParticleSystems that are used in the current FX
+Select one to edit it.
+The fields directly correspond to the various entries in ParticleSystems.ini
+
+You can add, remove or move Color or Alpha entries via the buttons.
+
+(Check the ModuleList or any Particle tutorial for information about the parameters)
+
+
+-) How to store your progress
+
+There are 2 ways to save your FX.
+
+1.) Directily save to your game's ParticleSystem and FXList .ini files (via File -> Save menu)
+This method is not 100% safe yet and is currently not recommended. It will NOT modify any existing entries from your .ini files, but there are sometimes issues that modified entries are not properly saved.
+
+2.) (RECOMMENDED!) Export to a textfile:
+-- Click 'Export WorkingSet to file' in the File menu. Save as a text file in an arbitrary folder. This includes all modified ParticleSystems and FXLists in the same file.
+Use this if you want to add your effects to the game manually or as a backup save.
+
+You can later continue your work from where you left off by using the 'Import WorkingSet from File' option.

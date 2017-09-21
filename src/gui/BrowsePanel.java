@@ -175,11 +175,13 @@ public class BrowsePanel extends JPanel {
 						Main.ParticleSystemTypes.put(name, ptype);
 						Main.work_ParticleSystemTypes.put(name, ptype);
 						Main.updateParticleSystemNames();
+						renderer.editPanel.particleEditPanel.fillParticleLists();
 						FXListType type = FXListType.getFXTypeFromParticle(name);
 						renderer.updateActiveFX(type, name);	
 						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
 						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
 						getActiveTab().getActiveList().setSelectedValue(name, true);
+						renderer.addNewParticleToLists(ptype, name);
 						filterAllLists();
 						setIgnoreChanges(false);
 					}
@@ -220,6 +222,7 @@ public class BrowsePanel extends JPanel {
 						renderer.updateActiveFX(type, name);	
 						browse_All.fillList(Main.FXListTypes.keySet(), Main.ParticleSystemTypes.keySet());
 						browse_Working.fillList(Main.work_FXListTypes.keySet(), Main.work_ParticleSystemTypes.keySet());
+						renderer.addNewParticleToLists(ptype, name);
 						getActiveTab().getActiveList().setSelectedValue(name, true);
 						filterAllLists();
 						setIgnoreChanges(false);

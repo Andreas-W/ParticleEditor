@@ -345,7 +345,7 @@ public class EditPanel extends JPanel {
 		}
 	}
 	
-	private void addToParticleSelection(String name) {
+	public void addToParticleSelection(String name) {
 		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) cb_ParticleSystems.getModel();
 		if (model.getIndexOf(name) == -1) cb_ParticleSystems.addItem(name);
 	}

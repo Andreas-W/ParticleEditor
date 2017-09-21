@@ -226,7 +226,12 @@ public class ParticleEditPanel extends JPanel {
 			public void itemStateChanged(ItemEvent e) {
 				if (!ignoreChanges) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
-						if (((JComboBox)e.getSource()).getSelectedIndex() == -1) {							
+//						renderer.editPanel.addToParticleSelection((String)e.getItem());
+						updateParticleValues();
+						renderer.mainWindow.reset = true;
+						renderer.editPanel.updateFXGUI();
+						
+/*						if (((JComboBox)e.getSource()).getSelectedIndex() == -1) {							
 							NewParticleDialog dialog = new NewParticleDialog(renderer, (String)e.getItem(), "");
 							int result = dialog.showDialog();
 							if (result == 1) {
@@ -248,19 +253,22 @@ public class ParticleEditPanel extends JPanel {
 								fillParticleLists();
 								((JComboBox)e.getSource()).setSelectedItem(pname);
 								//updateParticleValues();
-								renderer.updateActiveParticle(ptype, pname);
+								//renderer.updateActiveParticle(ptype, pname);
 								ignoreChanges = false;
+								updateParticleValues();
+								renderer.editPanel.updateFXGUI();
 							}else {
-								ignoreChanges = true;
+								//ignoreChanges = true;
 								((JComboBox)e.getSource()).setSelectedIndex(0);
-								ignoreChanges = false;
+								//ignoreChanges = false;
+								updateParticleValues();
 							}
 						}else {
-							//updateParticleValues();
-							renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
+							updateParticleValues();
+							//renderer.updateActiveParticle(Main.getParticleSystem((String)e.getItem()), (String)e.getItem());
 							//renderer.editPanel.selectionChanged();
 							renderer.mainWindow.reset = true;
-						}
+						}*/
 					}
 				}
 			}
@@ -933,7 +941,6 @@ public class ParticleEditPanel extends JPanel {
 		panel_Slave.add(cbAttachedSystem);
 		cbAttachedSystem.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		cbAttachedSystem.setEnabled(false);
-		cbAttachedSystem.setEditable(true);
 		cbAttachedSystem.setPreferredSize(new Dimension(275,22));
 		cbAttachedSystem.addItemListener(particleSystemSelectListener);
 		
@@ -952,7 +959,6 @@ public class ParticleEditPanel extends JPanel {
 		panel_Slave.add(cbSlavedSystem);
 		cbSlavedSystem.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		cbSlavedSystem.setEnabled(false);
-		cbSlavedSystem.setEditable(true);
 		cbSlavedSystem.setPreferredSize(new Dimension(275,22));
 		cbSlavedSystem.addItemListener(particleSystemSelectListener);
 		
@@ -1721,4 +1727,10 @@ public class ParticleEditPanel extends JPanel {
 
         ignoreChanges = false;
     }
+	public JComboBox getCbAttachedSystem() {
+		return cbAttachedSystem;
+	}
+	public JComboBox getCbSlavedSystem() {
+		return cbSlavedSystem;
+	}
 }
