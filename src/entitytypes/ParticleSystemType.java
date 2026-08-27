@@ -94,7 +94,7 @@ public class ParticleSystemType {
 
 
 	//ParticleSystem fields	(only include actual particleSystem field in this class)
-	public String Priority = ""; //We don't really need this value, so it's just read as a string
+	public e_Priority Priority = e_Priority.ALWAYS_RENDER; //We don't really need this value, so it's just read as a string
 	public boolean IsOneShot = false;
 	public e_Shader Shader = e_Shader.ADDITIVE;
 	public e_Type Type = e_Type.PARTICLE;
@@ -260,12 +260,49 @@ public class ParticleSystemType {
 		}
 	}
 	
+	public enum e_Priority {
+		//From highest to lowest
+		ALWAYS_RENDER,
+		CRITICAL,
+		AREA_EFFECT,
+		WEAPON_TRAIL,
+		CONSTANT,
+		SEMI_CONSTANT,
+		DEATH_EXPLOSION,
+		UNIT_DAMAGE_FX,
+		DEBRIS_TRAIL,
+		BUILDUP,
+		DUST_TRAIL,
+		SCORCHMARK,
+		WEAPON_EXPLOSION
+	}
+	
 	public enum e_Shader {
-		ADDITIVE, ALPHA, ALPHA_TEST
+		ADDITIVE, ALPHA, ALPHA_TEST(false), MULTIPLY(false), NONE(false);
+		
+		public boolean supported;
+		
+		private e_Shader() {
+			this(true);
+		}
+		
+		private e_Shader(boolean supported) {
+			this.supported = supported;
+		}
 	}
 	
 	public enum e_Type {
-		PARTICLE, STREAK
+		PARTICLE, STREAK, VOLUME_PARTICLE(false), DRAWABLE(false);
+		
+		public boolean supported;
+		
+		private e_Type() {
+			this(true);
+		}
+		
+		private e_Type(boolean supported) {
+			this.supported = supported;
+		}
 	}
 	
 	public enum e_VelocityType {

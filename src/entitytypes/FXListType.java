@@ -3,6 +3,7 @@ package entitytypes;
 import java.util.ArrayList;
 
 import entitytypes.FXListType.ParticleSystemEntry;
+import entitytypes.ParticleSystemType.e_Priority;
 import main.Main;
 import util.Util;
 

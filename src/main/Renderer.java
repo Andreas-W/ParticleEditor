@@ -4,7 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Label;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +31,7 @@ import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.ColoringAttributes;
 import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.ImageComponent;
 import javax.media.j3d.LineArray;
 import javax.media.j3d.LineStripArray;
@@ -76,6 +80,7 @@ import com.sun.j3d.utils.universe.ViewingPlatform;
 import entities.Entity;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
+import entitytypes.ParticleSystemType.e_Priority;
 import gui.BrowsePanel;
 import gui.EditPanel;
 import gui.MainWindow;
@@ -103,6 +108,8 @@ public class Renderer {
 	public SimpleUniverse universe;
 	
 	public HashMap<String, Scene> models = new HashMap<String, Scene>();
+	
+	public e_Priority maxParticlePriority = e_Priority.ALWAYS_RENDER;
 
 	//GUI ELEMENTS
 	//---------------
@@ -225,7 +232,12 @@ public class Renderer {
 		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
 		newParticleGroup.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 		
-		canvas = new Canvas3D(SimpleUniverse.getPreferredConfiguration()); 		
+		GraphicsConfiguration gc = SimpleUniverse.getPreferredConfiguration();
+		//GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+		//GraphicsConfiguration gc = GraphicsEnvironment.getLocalGraphicsEnvironment().
+		//getDefaultScreenDevice().getBestConfiguration(template);
+		
+		canvas = new Canvas3D(gc);
 		universe = new SimpleUniverse(canvas); 
 		//SimpleUniverse universe = new SimpleUniverse();
 		canvas.getView().setMinimumFrameCycleTime(1000/60);
@@ -398,11 +410,12 @@ public class Renderer {
 		mainWindow = new MainWindow(this);
         //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		//frame.setLayout(new BorderLayout());
-        mainWindow.setSize(Config.WindowWidth, Config.WindowHeigth);
+        mainWindow.setSize(Config.WindowWidth, Config.WindowHeight);
         if (Config.Fullscreen) mainWindow.setExtendedState(Frame.MAXIMIZED_BOTH);
         
-        canvas.setMinimumSize(new Dimension(800, 600));
-
+        //canvas.setMinimumSize(new Dimension(800, 600));
+        canvas.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
+        
 		// create the status bar panel and shove it down the bottom of the frame
 		
 		JPanel contentPanel = mainWindow.getContentPane();
@@ -422,9 +435,12 @@ public class Renderer {
 		//JSplitPane split2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split1, editPanel);
 		//contentPanel.add(split2, BorderLayout.CENTER);
 		
+		//contentPanel.setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
+		
 		contentPanel.add(browsePanel, BorderLayout.WEST);
 		contentPanel.add(canvas, BorderLayout.CENTER);
 		contentPanel.add(editPanel, BorderLayout.EAST);
+		
 		
 		//split1.setDividerSize(4);
 //		split1.setDividerLocation(250);

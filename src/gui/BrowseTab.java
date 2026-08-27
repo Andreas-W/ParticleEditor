@@ -1,11 +1,15 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractButton;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -192,5 +196,25 @@ public class BrowseTab extends JPanel {
 				renderer.mainWindow.reset = true;
 			}
 		}
+	}
+
+	public void setFxHighlighting(List<String> fx_entries) {
+		if (fx_entries != null) {
+			this.a_lst_FX.setCellRenderer(new DefaultListCellRenderer(){
+				@Override
+                public Component getListCellRendererComponent(JList list, Object value, int index,
+                          boolean isSelected, boolean cellHasFocus) {
+                     Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                     if (fx_entries.contains(value)) {
+                    	 setBackground(Color.GREEN);
+                     }
+                
+                     return c;
+				}
+			});
+		} else {
+			this.a_lst_FX.setCellRenderer(new DefaultListCellRenderer());
+		}
+		
 	}
 }

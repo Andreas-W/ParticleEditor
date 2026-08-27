@@ -430,5 +430,9 @@ public class EditPanel extends JPanel {
 		Main.activeFXListType.ParticleSystems.remove(entry);
 		updateFXCode();
 	}
+
+	public void updateParticleLists() {
+		this.particleEditPanel.fillParticleLists();
+	}
 	
 }

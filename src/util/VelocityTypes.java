@@ -64,6 +64,7 @@ public class VelocityTypes {
 				break;
 			case POINT:
 				velocity = MathUtil.randomDir();
+				velocity.scale(MathUtil.getRandomFloat(sys.type.VelOutward));
 				break;
 			case BOX:
 				//System.out.println("Box: Dir.length="+dir.length());

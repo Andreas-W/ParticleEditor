@@ -11,6 +11,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
@@ -35,6 +36,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
@@ -45,6 +47,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
@@ -59,6 +65,7 @@ import util.Undo;
 import util.Util;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
+import entitytypes.ParticleSystemType.e_Priority;
 import gui.filter.FilterDialog;
 import gui.filter.FilterPanel_Scale;
 
@@ -89,6 +96,7 @@ public class MainWindow extends JFrame {
 	private JCheckBox chTrailMode;
 	private ValueTextField tfTrailSpeed;
 	public JComboBox cbModel;
+	public JComboBox cbMaxPriority;
 	/**
 	 * Create the frame.
 	 */
@@ -115,7 +123,31 @@ public class MainWindow extends JFrame {
 		JMenuItem mntmExportWorkingSet = new JMenuItem("Export working set to file...");
 		mntmExportWorkingSet.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser fileChooser = new JFileChooser(Config.DefaultFolderWorkingSet);
+				//JFileChooser fileChooser = new JFileChooser(Config.DefaultFolderWorkingSet);
+				
+				JFileChooser fileChooser = new JFileChooser(Config.DefaultFolderWorkingSet){
+				    @Override
+				    public void approveSelection(){
+				        File f = getSelectedFile();
+				        if(f.exists() && getDialogType() == SAVE_DIALOG){
+				            int result = JOptionPane.showConfirmDialog(this,"The file exists, overwrite?","Existing file",JOptionPane.YES_NO_CANCEL_OPTION);
+				            switch(result){
+				                case JOptionPane.YES_OPTION:
+				                    super.approveSelection();
+				                    return;
+				                case JOptionPane.NO_OPTION:
+				                    return;
+				                case JOptionPane.CLOSED_OPTION:
+				                    return;
+				                case JOptionPane.CANCEL_OPTION:
+				                    cancelSelection();
+				                    return;
+				            }
+				        }
+				        super.approveSelection();
+				    }        
+				};
+
 				fileChooser.setDialogTitle("Specify a file to save");   				 
 				int userSelection = fileChooser.showSaveDialog(MainWindow.this);				 
 				if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -272,7 +304,8 @@ public class MainWindow extends JFrame {
 		});
 		mnSettings.add(mntmView);
 		
-		JMenu mnFilter = new JMenu("Filter");
+		
+		JMenu mnFilter = new JMenu("Advanced");
 		menuBar.add(mnFilter);
 		
 		JMenuItem mntmScaleFx = new JMenuItem("Scale FX");
@@ -289,6 +322,33 @@ public class MainWindow extends JFrame {
 			}
 		});
 		mnFilter.add(mntmScaleFx);
+		
+		JMenuItem mntmHighlightList = new JMenuItem("Highlight FX from List");
+		mntmHighlightList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser(Config.DefaultFolder);
+				fileChooser.setDialogTitle("Choose Filter list (.txt file)");   				 
+				int userSelection = fileChooser.showOpenDialog(MainWindow.this);				 
+				if (userSelection == JFileChooser.APPROVE_OPTION) {
+					Path path = Paths.get(fileChooser.getSelectedFile().getAbsolutePath());
+					try {
+						List<String> fx_entries = Files.readAllLines(path, StandardCharsets.UTF_8);
+						renderer.browsePanel.setFxHighlighting(fx_entries);
+					} catch (IOException e1) {
+						System.err.println("Failed to load file "+ path.toString());
+					}
+				}
+			}
+		});
+		mnFilter.add(mntmHighlightList);
+		
+		JMenuItem mntmHighlightClear = new JMenuItem("Clear FX highlighting");
+		mntmHighlightClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				renderer.browsePanel.setFxHighlighting(null);
+			}
+		});
+		mnFilter.add(mntmHighlightClear);
 		
 //		JMenuItem mi_ChooseTextureFolder = new JMenuItem("Choose Primary Texture folder...");
 //		mnSettings.add(mi_ChooseTextureFolder);
@@ -451,6 +511,23 @@ public class MainWindow extends JFrame {
 		panel_4.add(cbModel);
 		
 		fillModels();
+		
+		JLabel lblMaxPriority = new JLabel("Max Priority (LOD):");
+		panel_4.add(lblMaxPriority);
+		cbMaxPriority = new JComboBox();
+		cbMaxPriority.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				if (cbModel.getItemCount() >0 && cbMaxPriority.getSelectedIndex() >= 0) {
+					e_Priority priority = (e_Priority)cbMaxPriority.getSelectedItem();
+					renderer.maxParticlePriority = priority;
+				}
+			}
+		});
+		cbMaxPriority.setModel(new DefaultComboBoxModel(e_Priority.values()));
+		cbMaxPriority.setSelectedIndex(cbMaxPriority.getItemCount()-1);
+		cbMaxPriority.setMaximumRowCount(64);
+		panel_4.add(cbMaxPriority);
+
 	}
 
 	private void fillModels() {

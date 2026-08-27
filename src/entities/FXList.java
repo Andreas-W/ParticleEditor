@@ -61,7 +61,7 @@ public class FXList extends Entity{
 	
 	public void preLoadParticleSystem(ParticleSystemEntry entry) {
 		ParticleSystemType p_type = Main.getParticleSystem(entry.Name);
-		if (type != null) {
+		if (p_type != null && p_type.Priority.ordinal() <= engine.renderer.maxParticlePriority.ordinal()) {
 			for (int i = 0; i < entry.Count; i++) {
 				int spawnDelay = 0;
 				if (entry.InitialDelay != null) spawnDelay += (int) ((float)MathUtil.getRandomFloat(entry.InitialDelay.data[0], entry.InitialDelay.data[1], entry.InitialDelay.rtype) / 33.333f);

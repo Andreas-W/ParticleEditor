@@ -108,7 +108,7 @@ public class ParticleSystemEntryPanel extends JPanel {
 	 */
 	public ParticleSystemEntryPanel(Renderer rend) {
 		this.renderer = rend;
-		setPreferredSize(new Dimension(250, 160));
+		setPreferredSize(new Dimension(319, 170));
 		setMaximumSize(new Dimension(1000, 160));
 		setLayout(new BorderLayout(0, 0));
 		
@@ -224,6 +224,11 @@ public class ParticleSystemEntryPanel extends JPanel {
 					renderer.browsePanel.fillLists();
 					renderer.editPanel.updateFXGUI();
 					renderer.editPanel.updateFXCode();
+					
+					//renderer.editPanel.updateParticleGUI();
+					//renderer.editPanel.updateParticleCode();
+					renderer.editPanel.updateParticleLists();
+					
 					renderer.editPanel.fxEditPerformed();
 					
 					ignoreChanges = false;
@@ -264,6 +269,9 @@ public class ParticleSystemEntryPanel extends JPanel {
 					renderer.browsePanel.fillLists();
 					renderer.editPanel.updateFXGUI();
 					renderer.editPanel.updateFXCode();
+					//renderer.editPanel.updateParticleGUI();
+					//renderer.editPanel.updateParticleCode();
+					renderer.editPanel.updateParticleLists();
 					renderer.editPanel.fxEditPerformed();
 					
 					ignoreChanges = false;
@@ -441,12 +449,12 @@ public class ParticleSystemEntryPanel extends JPanel {
 		tglbtnOptions = new JToggleButton("Options");
 		panel_1.add(tglbtnOptions);
 		
-		btnDelete = new JButton("");
+		btnDelete = new JButton("[X]");
 		btnDelete.setToolTipText("Remove this ParticleSystem entry");
 		panel_1.add(btnDelete);
-		btnDelete.setBorder(null); 
-		btnDelete.setIcon(new ImageIcon(ParticleSystemEntryPanel.class.getResource("/javax/swing/plaf/metal/icons/ocean/close.gif")));
-		btnDelete.setContentAreaFilled(false); 
+		//btnDelete.setBorder(null); 
+		//btnDelete.setIcon(new ImageIcon(ParticleSystemEntryPanel.class.getResource("/javax/swing/plaf/metal/icons/ocean/close.gif")));
+		//btnDelete.setContentAreaFilled(false); 
 		btnDelete.setMargin(new Insets(0, 0, 0, 0));
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

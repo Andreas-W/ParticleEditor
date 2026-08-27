@@ -10,7 +10,7 @@ public class Config {
 	
 	//Config file properties
 	public static int WindowWidth=1280;
-	public static int WindowHeigth=720;
+	public static int WindowHeight=720;
 	public static boolean Fullscreen=true;
 	public static String ParticleSystemFile = "ParticleSystem.txt";
 	public static String FXListFile = "FXList.txt";
@@ -46,7 +46,7 @@ public class Config {
 		    props.load(reader);
 		 
 		    WindowWidth = Integer.parseInt(props.getProperty("WindowWidth", "1280"));
-		    WindowHeigth = Integer.parseInt(props.getProperty("WindowHeight", "720"));
+		    WindowHeight = Integer.parseInt(props.getProperty("WindowHeight", "720"));
 		    Fullscreen = Boolean.parseBoolean(props.getProperty("Fullscreen", "true" ));
 		    ParticleSystemFile=props.getProperty("ParticleSystemFile", "ParticleSystem.txt");
 		    FXListFile=props.getProperty("FXListFile","FXList.txt");
@@ -78,7 +78,7 @@ public class Config {
 		    Properties props = new Properties();
 		    
 		    props.setProperty("WindowWidth", ""+WindowWidth);
-		    props.setProperty("WindowHeight", ""+WindowWidth);
+		    props.setProperty("WindowHeight", ""+WindowHeight);
 		    props.setProperty("Fullscreen", ""+Fullscreen);
 		    props.setProperty("ParticleSystemFile", ParticleSystemFile);
 		    props.setProperty("FXListFile", FXListFile);

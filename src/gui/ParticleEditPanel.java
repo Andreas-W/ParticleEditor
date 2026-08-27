@@ -12,12 +12,15 @@ import javax.swing.BoxLayout;
 
 import java.awt.Component;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JColorChooser;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -40,6 +43,7 @@ import main.Renderer;
 import entitytypes.ParticleSystemType;
 import entitytypes.ParticleSystemType.alphaEntry;
 import entitytypes.ParticleSystemType.colorEntry;
+import entitytypes.ParticleSystemType.e_Priority;
 import entitytypes.ParticleSystemType.e_VelocityType;
 import entitytypes.ParticleSystemType.e_VolumeType;
 
@@ -191,6 +195,8 @@ public class ParticleEditPanel extends JPanel {
 	private ItemListener particleSystemSelectListener;
 	private JPanel panel_Alpha;
 	public ParticleEditPanel(Renderer rend) {
+		
+		
 		this.renderer = rend;
 		
 		particleValuesChangedListener = new PropertyChangeListener() {
@@ -305,6 +311,19 @@ public class ParticleEditPanel extends JPanel {
 		panel_3.add(cbParticleType);
 		cbParticleType.setModel(new DefaultComboBoxModel(e_Type.values()));
 		cbParticleType.setSelectedIndex(0);
+		cbParticleType.setRenderer(new DefaultListCellRenderer() {
+			 public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			    // Request superclass to render the JLabel.
+			    Component ret = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			    // Now conditionally override background if cell isn't selected.
+			    if (!((e_Type)value).supported) {
+			        //ret.setBackground(Color.RED);
+			        ret.setForeground(Color.gray);
+			    }
+
+			    return ret;
+			  }
+		});
 		
 		cbShader = new JComboBox();
 		cbShader.addItemListener(new ItemListener() {
@@ -320,6 +339,20 @@ public class ParticleEditPanel extends JPanel {
 		});
 		panel_3.add(cbShader);
 		cbShader.setModel(new DefaultComboBoxModel(e_Shader.values()));
+		
+		cbShader.setRenderer(new DefaultListCellRenderer() {
+			 public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				    // Request superclass to render the JLabel.
+				    Component ret = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				    // Now conditionally override background if cell isn't selected.
+				    if (!((e_Shader)value).supported) {
+				        //ret.setBackground(Color.RED);
+				        ret.setForeground(Color.gray);
+				    }
+
+				    return ret;
+				  }
+			});
 		
 		JPanel panel_22 = new JPanel();
 		FlowLayout flowLayout_18 = (FlowLayout) panel_22.getLayout();
@@ -1007,8 +1040,20 @@ public class ParticleEditPanel extends JPanel {
 		lblPriority.setHorizontalAlignment(SwingConstants.LEFT);
 		
 		cbPriority = new JComboBox();
+		cbPriority.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				if (!ignoreChanges && e.getStateChange() == ItemEvent.SELECTED) {
+					Undo.performParticleOperation("changed Priority", OperationType.EDIT);
+					ParticleSystemType type = Main.activeParticleSystemType;
+					type.Priority = (e_Priority) cbPriority.getSelectedItem();
+					renderer.editPanel.particleEditPerformed();
+					renderer.mainWindow.reset = true;
+				}
+			}
+		});
 		panel_1.add(cbPriority);
-		cbPriority.setModel(new DefaultComboBoxModel(new String[] {"WEAPON_EXPLOSION", "WEAPON_TRAIL", "DEATH_EXPLOSION", "UNIT_DAMAGE_FX", "CRITICAL", "AREA_EFFECT", "ALWAYS_RENDER", "CONSTANT", "SEMI_CONSTANT", "DEBRIS_TRAIL", "BUILDUP", "DUST_TRAIL", "SCORCHMARK"}));
+		
+		cbPriority.setModel(new DefaultComboBoxModel(e_Priority.values()));
 		cbPriority.setSelectedIndex(0);
 		
 		JPanel panel_15 = new JPanel();
@@ -1023,6 +1068,10 @@ public class ParticleEditPanel extends JPanel {
 		chckbxParticleuptowardsemitter = new JCheckBox("UpTowardsEmitter");
 		chckbxParticleuptowardsemitter.setFont(new Font("Tahoma", Font.PLAIN, 9));
 		panel_15.add(chckbxParticleuptowardsemitter);
+		
+//		JPanel panel_Dummy = new JPanel();
+//		panel_Dummy.setMinimumSize(new Dimension(0, 500));
+//		add(panel_Dummy);
 		
 		tfAngleDampingMax.addPropertyChangeListener("value", particleValuesChangedListener);
 		tfAngleDampingMin.addPropertyChangeListener("value", particleValuesChangedListener);
@@ -1458,7 +1507,7 @@ public class ParticleEditPanel extends JPanel {
 		type.SlavePosOffset.x = (float) tfSlaveX.getValue();
 		type.SlavePosOffset.y = (float) tfSlaveY.getValue();
 		type.SlavePosOffset.z = (float) tfSlaveZ.getValue();
-		type.Priority = (String) cbPriority.getSelectedItem();
+		type.Priority = (e_Priority) cbPriority.getSelectedItem();
 		type.Shader = (e_Shader) cbShader.getSelectedItem();
 		type.Size[0] = (float) tfSizeMin.getValue();
 		type.Size[1] = (float) tfSizeMax.getValue();

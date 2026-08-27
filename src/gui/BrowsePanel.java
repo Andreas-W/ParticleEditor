@@ -64,6 +64,8 @@ public class BrowsePanel extends JPanel {
 	private JLabel lblFilter;
 	//public JButton btn_remove;
 	
+	private JButton btn_filter_list;
+	
 	/**
 	 * Create the panel.
 	 */
@@ -131,6 +133,16 @@ public class BrowsePanel extends JPanel {
 		
 		lblFilter = new JLabel("Filter:");
 		panel_controls.add(lblFilter);
+		
+//		btn_filter_list = new JButton("L");
+//		panel_controls.add(btn_filter_list);
+//		
+//		btn_filter_list.addActionListener(new ActionListener() {			
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				String name = JOptionPane.showInputDialog(BrowsePanel.this, "Create New FX with name:");
+//			}
+//		}
 		
 		tfFilter.setHorizontalAlignment(SwingConstants.LEFT);
 		tfFilter.setToolTipText("Filter by name");
@@ -365,5 +377,10 @@ public class BrowsePanel extends JPanel {
 	
 	public JTextField getTfFilter() {
 		return tfFilter;
+	}
+	
+	public void setFxHighlighting(List<String> fx_entries) {
+		browse_All.setFxHighlighting(fx_entries);
+		browse_Working.setFxHighlighting(fx_entries);
 	}
 }

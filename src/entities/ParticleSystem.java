@@ -128,13 +128,14 @@ public class ParticleSystem extends Entity{
 					//TODO: Add parent rotation and offset
 					
 
-					if (this.type.Type == e_Type.PARTICLE) {
-						Particle part = new Particle(this, position, offset, velocity, StartSize);
-						engine.addEntity(part);
-					}else if (this.type.Type == e_Type.STREAK) {
+
+					if (this.type.Type == e_Type.STREAK) {
 						StreakParticle part = new StreakParticle(this, position, offset, velocity, StartSize);
 						if (prevParticle != null && !prevParticle.dead) part.prev = prevParticle;
 						prevParticle = part;
+						engine.addEntity(part);
+					}else /*if (this.type.Type == e_Type.PARTICLE)*/ {
+						Particle part = new Particle(this, position, offset, velocity, StartSize);
 						engine.addEntity(part);
 					}
 					
