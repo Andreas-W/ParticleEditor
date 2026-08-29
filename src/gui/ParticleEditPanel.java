@@ -1,9 +1,9 @@
 package gui;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.ImageComponent;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.Texture;
+import org.jogamp.java3d.ImageComponent;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.Texture;
 import javax.swing.JPanel;
 
 import java.awt.BorderLayout;
@@ -62,7 +62,7 @@ import util.Undo;
 import util.Util;
 import util.Undo.OperationType;
 
-import com.sun.j3d.utils.image.TextureLoader;
+import org.jogamp.java3d.utils.image.TextureLoader;
 
 import components.ImagePreview;
 

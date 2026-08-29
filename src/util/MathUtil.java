@@ -1,10 +1,12 @@
 package util;
 
+import java.awt.Color;
 import java.util.Random;
 
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Vector2f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 import entitytypes.FXListType.e_RandomType;
 
@@ -138,6 +140,15 @@ public class MathUtil {
 		float x = (float) (radius * Math.cos(angle));
 		float y = (float) (radius * Math.sin(angle));
 		return new Vector2f(x,y);
+	}
+
+
+	/**
+	 * JogAmp's vecmath has no AWT-aware Color3f(java.awt.Color) constructor
+	 * like the old javax.vecmath had, so do the conversion here.
+	 */
+	public static Color3f toColor3f(Color color) {
+		return new Color3f(color.getRGBColorComponents(new float[3]));
 	}
 
 }

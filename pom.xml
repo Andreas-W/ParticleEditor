@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.generals</groupId>
+	<artifactId>particle-editor</artifactId>
+	<version>2.0.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>Generals Particle Editor</name>
+
+	<properties>
+		<maven.compiler.release>22</maven.compiler.release>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- JogAmp Java 3D: the community continuation of Java3D 1.5.2.
+		     Same API, packages renamed javax.media.j3d -> org.jogamp.java3d. -->
+		<java3d.version>1.7.2</java3d.version>
+		<!-- Native OpenGL/OpenAL bindings that Java 3D 1.7 renders through. -->
+		<jogamp.version>2.6.0</jogamp.version>
+		<miglayout.version>11.4.3</miglayout.version>
+
+		<mainClass>main.Main</mainClass>
+		<addOpens>java.desktop/sun.awt</addOpens>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.jogamp.java3d</groupId>
+			<artifactId>java3d-core</artifactId>
+			<version>${java3d.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.java3d</groupId>
+			<artifactId>java3d-utils</artifactId>
+			<version>${java3d.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.java3d</groupId>
+			<artifactId>vecmath</artifactId>
+			<version>${java3d.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+			<version>${miglayout.version}</version>
+		</dependency>
+
+		<!-- Native libraries for the desktop platforms. Without these JOGL
+		     cannot load its GL/AL bindings and Canvas3D fails at startup. -->
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-windows-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-linux-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.gluegen</groupId>
+			<artifactId>gluegen-rt</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-macosx-universal</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-windows-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-linux-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.jogl</groupId>
+			<artifactId>jogl-all</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-macosx-universal</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.joal</groupId>
+			<artifactId>joal</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-windows-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.joal</groupId>
+			<artifactId>joal</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-linux-amd64</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.jogamp.joal</groupId>
+			<artifactId>joal</artifactId>
+			<version>${jogamp.version}</version>
+			<classifier>natives-macosx-universal</classifier>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<!-- Sources stay where they have always been rather than moving to
+		     the Maven default, so history and the Eclipse project still line up. -->
+		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+			</plugin>
+
+			<!-- Copies the runtime classpath next to the jar so the manifest
+			     Class-Path below resolves. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.7.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.4.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${mainClass}</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+						</manifest>
+						<manifestEntries>
+							<!-- JOGL reaches into sun.awt to hook the AWT canvas.
+							     Java 16+ denies that by default and Java 20+ makes
+							     it fatal, so the executable jar asks for it itself. -->
+							<Add-Opens>${addOpens}</Add-Opens>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- mvn exec:exec runs the editor straight from the working copy,
+			     in a forked JVM so the add-opens flag actually takes effect. -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.4.1</version>
+				<configuration>
+					<executable>${java.home}/bin/java</executable>
+					<workingDirectory>${project.basedir}</workingDirectory>
+					<arguments>
+						<argument>--add-opens</argument>
+						<argument>${addOpens}=ALL-UNNAMED</argument>
+						<argument>-classpath</argument>
+						<classpath/>
+						<argument>${mainClass}</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

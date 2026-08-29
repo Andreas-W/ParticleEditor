@@ -2,7 +2,7 @@ package util;
 
 import java.util.HashMap;
 
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3d;
 
 import entities.ParticleSystem;
 import entitytypes.ParticleSystemType.e_VelocityType;

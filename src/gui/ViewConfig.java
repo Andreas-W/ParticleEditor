@@ -7,8 +7,8 @@ import java.awt.FlowLayout;
 import java.awt.Insets;
 
 import javax.imageio.ImageIO;
-import javax.media.j3d.ImageComponent;
-import javax.media.j3d.Texture;
+import org.jogamp.java3d.ImageComponent;
+import org.jogamp.java3d.Texture;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -34,7 +34,7 @@ import javax.swing.SwingConstants;
 
 import util.Util;
 
-import com.sun.j3d.utils.image.TextureLoader;
+import org.jogamp.java3d.utils.image.TextureLoader;
 import components.ImagePreview;
 
 import main.Config;

@@ -3,9 +3,9 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ImageComponent2D;
-import javax.media.j3d.Texture;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.Texture;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;

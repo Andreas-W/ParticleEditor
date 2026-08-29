@@ -24,24 +24,24 @@ import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.stream.FileImageInputStream;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Background;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.ColoringAttributes;
-import javax.media.j3d.DirectionalLight;
-import javax.media.j3d.GraphicsConfigTemplate3D;
-import javax.media.j3d.ImageComponent;
-import javax.media.j3d.LineArray;
-import javax.media.j3d.LineStripArray;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.RenderingAttributes;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Texture;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Background;
+import org.jogamp.java3d.BoundingSphere;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.ColoringAttributes;
+import org.jogamp.java3d.DirectionalLight;
+import org.jogamp.java3d.GraphicsConfigTemplate3D;
+import org.jogamp.java3d.ImageComponent;
+import org.jogamp.java3d.LineArray;
+import org.jogamp.java3d.LineStripArray;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.java3d.RenderingAttributes;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Texture;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.View;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFrame;
@@ -52,30 +52,30 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
-import javax.vecmath.Color3f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 import util.MathUtil;
 import util.Util;
 import net.nikr.dds.DDSImageReader;
 import net.nikr.dds.DDSImageReaderSpi;
 
-import com.sun.j3d.loaders.IncorrectFormatException;
-import com.sun.j3d.loaders.ParsingErrorException;
-import com.sun.j3d.loaders.Scene;
-import com.sun.j3d.loaders.objectfile.ObjectFile;
-import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
-import com.sun.j3d.utils.geometry.Box;
-import com.sun.j3d.utils.geometry.ColorCube;
-import com.sun.j3d.utils.geometry.Primitive;
-import com.sun.j3d.utils.geometry.Sphere;
-import com.sun.j3d.utils.image.TextureLoader;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.ViewingPlatform;
+import org.jogamp.java3d.loaders.IncorrectFormatException;
+import org.jogamp.java3d.loaders.ParsingErrorException;
+import org.jogamp.java3d.loaders.Scene;
+import org.jogamp.java3d.loaders.objectfile.ObjectFile;
+import org.jogamp.java3d.utils.behaviors.vp.OrbitBehavior;
+import org.jogamp.java3d.utils.geometry.Box;
+import org.jogamp.java3d.utils.geometry.ColorCube;
+import org.jogamp.java3d.utils.geometry.Primitive;
+import org.jogamp.java3d.utils.geometry.Sphere;
+import org.jogamp.java3d.utils.image.TextureLoader;
+import org.jogamp.java3d.utils.universe.SimpleUniverse;
+import org.jogamp.java3d.utils.universe.ViewingPlatform;
 
 import entities.Entity;
 import entitytypes.FXListType;
@@ -242,7 +242,7 @@ public class Renderer {
 		//SimpleUniverse universe = new SimpleUniverse();
 		canvas.getView().setMinimumFrameCycleTime(1000/60);
 		canvas.getView().setBackClipDistance(100.0);
-		background = new Background(new Color3f(new Color(Config.BGColor)));
+		background = new Background(MathUtil.toColor3f(new Color(Config.BGColor)));
 		background.setApplicationBounds(new BoundingSphere(new Point3d(0,0,0), Double.MAX_VALUE));
 		background.setCapability(Background.ALLOW_COLOR_WRITE);
 
@@ -370,7 +370,7 @@ public class Renderer {
 			float maxDist = (float) (Config.GroundSize*MathUtil.J3D_COORD_SCALE*0.5);
 			float distance = maxDist/(float)num;
 			LineArray grid=new LineArray(count,LineArray.COORDINATES|LineArray.COLOR_3);
-			Color3f c = new Color3f(new Color(Config.GridColor));
+			Color3f c = MathUtil.toColor3f(new Color(Config.GridColor));
 			
 			int i = 0;
 			for (int j = 0; j < num; j++) {
@@ -468,7 +468,7 @@ public class Renderer {
 		TransformGroup viewingTransformGroup = universe.getViewingPlatform().getViewPlatformTransform();
 		Transform3D viewingTransform = new Transform3D();
 
-		double pitch = 0.9163; // for 37.5° angle
+		double pitch = 0.9163; // for 37.5Â° angle
 		double r = 3.50; //350.0
 		double z = r * Math.sin(pitch);
 		double y = r * Math.cos(pitch);
@@ -517,7 +517,7 @@ public class Renderer {
 	}
 
 	public void setBackgroundColor(Color color) {
-		background.setColor(new Color3f(color));
+		background.setColor(MathUtil.toColor3f(color));
 	}
 
 	public boolean isInParticleMode() {

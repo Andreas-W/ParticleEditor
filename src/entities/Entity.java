@@ -1,7 +1,7 @@
 package entities;
 
 import main.Engine;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3d;
 
 public abstract class Entity {
 	public Engine engine; //The active engine this is connected to

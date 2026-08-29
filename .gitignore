@@ -1,1 +1,7 @@
 textures
+target/
+hs_err_pid*.log
+
+# IntelliJ per-developer state. The shared run configuration in .run/ is tracked.
+.idea/
+*.iml

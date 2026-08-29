@@ -1,24 +1,37 @@
-2017/04/21 16:48:47
+2026/08/29 15:20:57
 PS: 'TankStruckFlameSlave': could not parse token 'VolumeType'
-PS: 'Demo_BombTruckDefaultLenzFlare': could not parse token 'Type'
-PS: 'BombTruckDefaultLenzFlare': could not parse token 'Type'
-PS: 'CarCrushGlassDebris': could not parse token 'Shader'
-PS: 'CarCrushGlassDebris': could not parse token 'Type'
-PS: 'GiantLenzflareMonkey': could not parse token 'Type'
-PS: 'MicrowaveLenzflare': could not parse token 'Type'
-PS: 'IonTankExplosionTrailFlare': could not parse token 'Type'
+PS: 'PolarisExhaust': could not parse token 'Priority'
 PS: 'DGModExplosionFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
+PS: 'MissileExhaustWhite': could not parse token 'Priority'
 PS: 'DG_MOD_NewNukeEffectFireballz_FlamwaveZ': BurstCount: Failed to parse int value.
-PS: 'ParticleUplinkExplosionEnergyFlares': could not parse token 'Type'
-PS: 'SparkleExplosionVOLUME': could not parse token 'Type'
-PS: 'ParticleEnergyFlaresX2': could not parse token 'Type'
+PS: 'ExplosionArmExhaust': could not parse token 'Priority'
+PS: 'X_TracerSmokeJets': could not parse token 'Priority'
+PS: 'MissileExhaustWhiteLong': could not parse token 'Priority'
 PS: 'FireNukeFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
 PS: 'ZGen_DGModExplosionFireBallzFireBallShockwave': BurstCount: Failed to parse int value.
-PS: 'BombTruckDefaultLenzFlare_Blue': could not parse token 'Type'
-PS: 'FOABExplosionFlash': could not parse token 'Type'
-PS: 'AuroraBombExplosionFlash': could not parse token 'Type'
-PS: 'FlameThrowerTrail05': could not parse token 'Shader'
-PS: 'FlameThrowerTrail05Red': could not parse token 'Shader'
+PS: 'Public_MissileTrailFlame': could not parse token 'Priority'
+PS: 'Public_MissileTrailSmoke': could not parse token 'Priority'
+PS: 'MediumMissileExhaust': could not parse token 'Priority'
+PS: 'HeroicMediumMissileExhaust': could not parse token 'Priority'
+PS: 'RocketeerEngineExhaustLenzflare': could not parse token 'Priority'
+PS: 'MRLSMissileTrailFlame': could not parse token 'Priority'
+PS: 'MRLSMissileExhaust': could not parse token 'Priority'
+PS: 'HeroicMRLSMissileExhaust': could not parse token 'Priority'
+PS: 'SAMExhaust': could not parse token 'Priority'
+PS: 'HeroicSAMExhaust': could not parse token 'Priority'
+PS: 'PatriotMissileTrailFlame': could not parse token 'Priority'
+PS: 'PatriotMissileExhaust': could not parse token 'Priority'
+PS: 'PatriotMissileExhaustHeroic': could not parse token 'Priority'
+PS: 'HoverMRLSMissileTrailFlame': could not parse token 'Priority'
+PS: 'CoastalCruiseMissileTrailFlame': could not parse token 'Priority'
+PS: 'CoastalCruiseMissileTrailSmoke': could not parse token 'Priority'
+PS: 'CoastalCruiseMissileExhaust': could not parse token 'Priority'
+PS: 'TOSMissileTrailFlame': could not parse token 'Priority'
+PS: 'TOSMissileExhaust': could not parse token 'Priority'
+PS: 'TornadoMissileExhaust': could not parse token 'Priority'
+PS: 'HeroicTornadoMissileExhaust': could not parse token 'Priority'
+PS: 'SniperDroneEngineExhaustLenzflare': could not parse token 'Priority'
+PS: 'CarrierDroneBrakeExhaustLenzflare': could not parse token 'Priority'
 
 FX: 'FX_AmericaWarFactoryDeathFinal': Offset: Failed to parse float value.
 FX 'FX_SUPERTHERMOBLASTBEAM': could not parse token 'InitialDelay'
@@ -32,46 +45,44 @@ FX 'FX_IonCannon_Explosion_ULTRA': could not parse token 'InitialDelay'
 FX 'WhitePhosphorusArtilleryImpact': could not parse token 'InitialDelay'
 FX 'WhitePhosphorusArtilleryImpact': could not parse token 'InitialDelay'
 FX 'MediumLightingFieldEffect': could not parse token 'InitialDelay'
-FX 'TeslaCoilOverchargeFX': could not parse token 'InitialDelay'
-FX 'TeslaCoilOverchargeFX': could not parse token 'InitialDelay'
-FX 'TeslaCoilOverchargeFX': could not parse token 'InitialDelay'
 
-PS 'MissileDefenderMissileExhaust_XXX': Couldn't read file: fxmissilecontrail.tga
-PS 'MicrowaveEmitter': Couldn't read file: smudge.tga
-PS 'SparkleExplosionVOLUME': Couldn't read file: bmflare2.tga
-PS 'AnacondaBombExplosionNotHE': Couldn't read file: exexplo07.tga
-PS 'RailgunFlare': Couldn't read file: smudge.tga
-PS 'ParticleUplinkExplosionEnergyFlares': Couldn't read file: bmflare2.tga
-PS 'ThunderBoltMicroRange': Couldn't read file: exthunderwave.tga
-PS 'SatelliteHackII': Couldn't read file: exsatelitehack1.tga
-PS 'CO_FuelAirBombExplosionSideBlast': Couldn't read file: exexplo07.tga
-PS 'ImplosionMicrowave': Couldn't read file: smudge.tga
-PS 'OrbitalMissileDistortion': Couldn't read file: smudge.tga
-PS 'TacticalNukeDustDebris': Couldn't read file: anglez
-PS 'GPSMicrowaveScambler': Couldn't read file: smudge.tga
-PS 'ImplosionEmitter': Couldn't read file: smudge.tga
-PS 'CarCrushGlassDebris': Couldn't read file: glassshard01
-PS 'HeatHazeDestructor': Couldn't read file: smudge.tga
-PS 'IonCannonEmitterWave': Couldn't read file: smudge.tga
-PS 'CO_FuelAirBombExplosionSideBlast2': Couldn't read file: exexplo07.tga
-PS 'EnergyShell': Couldn't read file: plasmarifleshot.tga
-PS 'Y_HoverEffect': Couldn't read file: smudge.tga
-PS 'BombTruckHEExplosion': Couldn't read file: exexplo08.tga.
-PS 'ParticleUplinkDeathExplosionEnergyExplosion': Couldn't read file: bmflare2.tga
+PS 'ThunderBoltRadarRange': Couldn't read file: exthunderradar.tga
+PS 'TacticalNukeStem2': Couldn't read file: exstemsmoke1.tga
+PS 'HoverEffect_Distort': Couldn't read file: smudge.tga
 PS 'FireStormEmbersredone': Couldn't read file: exfireember2.tga
-PS 'FireBlaze1': Couldn't read file: exexplosion018.tga
-PS 'Boss_MigExplosionEmitter': Couldn't read file: smudge.tga
+PS 'SonicBurstProjectileDistortion': Couldn't read file: smudge.tga
+PS 'CryoBombInitialIceShards': Couldn't read file: exiceshard.tga
+PS 'GPSMicrowaveScambler': Couldn't read file: smudge.tga
+PS 'CO_FuelAirBombExplosionSideBlast2': Couldn't read file: exexplo07.tga
+PS 'ThunderBoltMicroRange': Couldn't read file: exthunderwave.tga
+PS 'ImplosionEmitter': Couldn't read file: smudge.tga
+PS 'CO_FuelAirBombExplosionSideBlast': Couldn't read file: exexplo07.tga
 PS 'IonChargeupDistortion': Couldn't read file: smudge.tga
 PS 'PaladinPointDefenseLaserFlare2': Couldn't read file: exlnzflar11.tga
-PS 'ParticleTarget': Couldn't read file: exlnzflar11.tga
-PS 'ParticleTargetUpgraded': Couldn't read file: exlnzflar11.tga
-PS 'ElectricExplosionCore': Couldn't read file: exelectric1.tga
+PS 'Boss_MigExplosionEmitter': Couldn't read file: smudge.tga
 PS 'CO_FuelAirBombExplosion': Couldn't read file: exexplo07.tga
-PS 'TacticalNukeStem2': Couldn't read file: exstemsmoke1.tga
-PS 'EnergyShell2': Couldn't read file: plasmarifleshot.tga
-PS 'PetrochemicalMissileExplosion1': Couldn't read file: exelectric1.tga
-PS 'ParticleEnergyFlaresX2': Couldn't read file: bmflare2.tga
-PS 'JetExplosionTrail': Couldn't read file: exdots.tga
-PS 'ThunderBoltRadarRange': Couldn't read file: exthunderradar.tga
-PS 'SatelliteHackI': Couldn't read file: exsatelitehack1.tga
 PS 'LandingZoneSmoke': Couldn't read file: exredsmokepuff.tga
+PS 'AnacondaBombExplosionNotHE': Couldn't read file: exexplo07.tga
+PS 'CarCrushGlassDebris': Couldn't read file: glassshard01
+PS 'ImplosionMicrowave': Couldn't read file: smudge.tga
+PS 'SatelliteHackII': Couldn't read file: exsatelitehack1.tga
+PS 'ParticleUplinkExplosionEnergyFlares': Couldn't read file: bmflare2.tga
+PS 'ParticleTargetUpgraded': Couldn't read file: exlnzflar11.tga
+PS 'ParticleEnergyFlaresX2': Couldn't read file: bmflare2.tga
+PS 'OrbitalMissileDistortion': Couldn't read file: smudge.tga
+PS 'JetExplosionTrail': Couldn't read file: exdots.tga
+PS 'TacticalNukeDustDebris': Couldn't read file: anglez
+PS 'SparkleExplosionVOLUME': Couldn't read file: bmflare2.tga
+PS 'SatelliteHackI': Couldn't read file: exsatelitehack1.tga
+PS 'ParticleTarget': Couldn't read file: exlnzflar11.tga
+PS 'SonicEmitterProjectileDistortion': Couldn't read file: smudge.tga
+PS 'BombTruckHEExplosion': Couldn't read file: exexplo08.tga.
+PS 'MissileDefenderMissileExhaust_XXX': Couldn't read file: fxmissilecontrail.tga
+PS 'ParticleUplinkDeathExplosionEnergyExplosion': Couldn't read file: bmflare2.tga
+PS 'FireBlaze1': Couldn't read file: exexplosion018.tga
+PS 'RailgunFlare': Couldn't read file: smudge.tga
+PS 'IonCannonEmitterWave': Couldn't read file: smudge.tga
+PS 'ElectricExplosionCore': Couldn't read file: exelectric1.tga
+PS 'MicrowaveEmitter': Couldn't read file: smudge.tga
+PS 'PetrochemicalMissileExplosion1': Couldn't read file: exelectric1.tga
+PS 'HeatHazeDestructor': Couldn't read file: smudge.tga

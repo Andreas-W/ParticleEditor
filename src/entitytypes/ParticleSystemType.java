@@ -1,7 +1,7 @@
 package entitytypes;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector3f;
 
 import util.Util;
 

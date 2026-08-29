@@ -1,8 +1,8 @@
 package entities;
 
-import javax.vecmath.Vector2d;
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector2d;
+import org.jogamp.vecmath.Vector2f;
+import org.jogamp.vecmath.Vector3d;
 
 import main.Engine;
 import main.Main;

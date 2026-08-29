@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Particle Editor" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="main.Main" />
+    <module name="particle-editor" />
+    <!-- Java 3D's JOGL pipeline reaches into sun.awt to bind an OpenGL context to
+         the AWT canvas. Java 16 denies that by default and Java 20 makes it fatal,
+         so without this Canvas3D throws "awtConfig is null" at startup. -->
+    <option name="VM_PARAMETERS" value="--add-opens java.desktop/sun.awt=ALL-UNNAMED" />
+    <!-- The editor reads ./config.properties, ground.jpg and models/ from the
+         working directory, and all three live at the repo root. -->
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

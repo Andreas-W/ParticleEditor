@@ -1,3 +1,11 @@
+08/29/2026
+----------
+-Ported off Java 8: the editor now builds and runs on Java 22+
+-Replaced Java3D 1.5.2 (dead, needed a hardcoded local install) with JogAmp Java 3D 1.7.2 from Maven Central
+-The javax.media.j3d / javax.vecmath / com.sun.j3d packages are now org.jogamp.java3d / org.jogamp.vecmath
+-Replaced the bundled MigLayout 1.5 jar with MigLayout 11.4.3
+-Added a Maven build (pom.xml + mvnw wrapper); see README.md for how to build and run
+
 09/13/2017
 ----------
 -Fixed a bug with CYLINDER VolumeTypes (Volumes were mispositioned by half the cylinder length)
