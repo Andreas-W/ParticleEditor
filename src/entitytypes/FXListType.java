@@ -18,20 +18,8 @@ public class FXListType {
 	
 	//ParticleSystem entry in FXList
 	public class ParticleSystemEntry {
-		/*
-			//We don't need these in the editor for now
-			public boolean UseCallersRadius = false; // [Yes/No] ; matches particle system radius with weapon damage radius
-			public boolean CreateAtGroundHeight = false; //[Yes/No]
-			public boolean AttachToObject = false; // [Yes/No];
-			public boolean Ricochet = false; //[Yes/No]
-			
-			public float RotateX = 0; //[integer]
-			public float RotateY = 0; //[integer]
-			public float RotateZ = 0; //[integer]
-			
-			public float[] Height = new float[];
-			
-		*/
+		//Field names must match the INI tokens exactly: Parser.parseToken() looks them
+		//up with getField(token), and anything it can't find is dropped on load.
 		public String Name = "";
 		public boolean OrientToObject = false; // [Yes/No]
 		public float[] Offset = new float[]{ 0.0f, 0.0f, 0.0f };
@@ -42,10 +30,23 @@ public class FXListType {
 		
 		public RandomFloatEntry Height;
 		
-		//Additional Stuff (Ignored in this editor)
+		//Additional Stuff (Ignored in this editor, but read and written back)
 		public boolean UseCallersRadius = false;
 		public boolean CreateAtGroundHeight = false;
-		public boolean Ricochet = false;		
+		public boolean Ricochet = false;
+		public boolean AttachToObject = false;
+		public float RotateX = 0;
+		public float RotateY = 0;
+		public float RotateZ = 0;
+		
+		//Only present in the modding fork of the engine, not in the base game
+		public boolean OrientOffset = false;
+		public boolean OrientXY = false;
+		public boolean UseCachedSurfaceInfo = false;
+		//"no limit" in the engine, so anything non-infinite means the modder set it
+		public float MinAllowedHeight = Float.NEGATIVE_INFINITY;
+		public float MaxAllowedHeight = Float.POSITIVE_INFINITY;
+		public e_AllowedSurface AllowedSurface = e_AllowedSurface.ALL;
 		
 		public ParticleSystemEntry(ParticleSystemEntry other) {
 			this.Name = other.Name;
@@ -58,6 +59,16 @@ public class FXListType {
 			this.UseCallersRadius = other.UseCallersRadius;
 			this.CreateAtGroundHeight = other.CreateAtGroundHeight;
 			this.Ricochet = other.Ricochet;
+			this.AttachToObject = other.AttachToObject;
+			this.RotateX = other.RotateX;
+			this.RotateY = other.RotateY;
+			this.RotateZ = other.RotateZ;
+			this.OrientOffset = other.OrientOffset;
+			this.OrientXY = other.OrientXY;
+			this.UseCachedSurfaceInfo = other.UseCachedSurfaceInfo;
+			this.MinAllowedHeight = other.MinAllowedHeight;
+			this.MaxAllowedHeight = other.MaxAllowedHeight;
+			this.AllowedSurface = other.AllowedSurface;
 		}
 
 		public ParticleSystemEntry() {
@@ -68,7 +79,7 @@ public class FXListType {
 			sb.append("ParticleSystem\n");
 			sb.append("  Name = ").append(Name).append("\n");
 			if (Count > 1)
-				sb.append("Count = "+Count+"\n");
+				sb.append("  Count = "+Count+"\n");
 			if (Offset[0] != 0 || Offset[1] != 0 || Offset[2] != 0)
 				sb.append(String.format("  Offset = X:%s Y:%s Z:%s\n", Util.fmt(Offset[0]),  Util.fmt(Offset[1]),  Util.fmt(Offset[2])));
 			if (InitialDelay != null && (InitialDelay.data[0] != 0 || InitialDelay.data[1] != 0))
@@ -85,6 +96,28 @@ public class FXListType {
 				sb.append("  CreateAtGroundHeight = Yes\n");
 			if (Ricochet)
 				sb.append("  Ricochet = Yes\n");
+			if (AttachToObject)
+				sb.append("  AttachToObject = Yes\n");
+			if (RotateX != 0)
+				sb.append("  RotateX = "+Util.fmt(RotateX)+"\n");
+			if (RotateY != 0)
+				sb.append("  RotateY = "+Util.fmt(RotateY)+"\n");
+			if (RotateZ != 0)
+				sb.append("  RotateZ = "+Util.fmt(RotateZ)+"\n");
+			if (OrientOffset)
+				sb.append("  OrientOffset = Yes\n");
+			if (OrientXY)
+				sb.append("  OrientXY = Yes\n");
+			if (UseCachedSurfaceInfo)
+				sb.append("  UseCachedSurfaceInfo = Yes\n");
+			//Util.fmt would write the literal "Infinity", which is not valid INI,
+			//so only write these once the modder has given them a real limit.
+			if (!Float.isInfinite(MinAllowedHeight))
+				sb.append("  MinAllowedHeight = "+Util.fmt(MinAllowedHeight)+"\n");
+			if (!Float.isInfinite(MaxAllowedHeight))
+				sb.append("  MaxAllowedHeight = "+Util.fmt(MaxAllowedHeight)+"\n");
+			if (AllowedSurface != e_AllowedSurface.ALL)
+				sb.append("  AllowedSurface = "+AllowedSurface.toString()+"\n");
 			sb.append("End\n");
 			return sb.toString();
 		}
@@ -133,6 +166,17 @@ public class FXListType {
 			}
 		}
 
+		/**
+		 * Mirrors isValidSurface() in the engine's FXList.cpp: an entry limited to one
+		 * surface is skipped on the other one, and ALL always plays. "selected" is the
+		 * surface the FX is being played on, so ALL there means "do not filter".
+		 */
+		public boolean matchesSurface(e_AllowedSurface selected) {
+			if (selected == e_AllowedSurface.ALL) return true;
+			if (selected == e_AllowedSurface.LAND) return AllowedSurface != e_AllowedSurface.WATER;
+			return AllowedSurface != e_AllowedSurface.LAND;
+		}
+
 		public void setValues(ParticleSystemEntry other) {
 			this.Name = other.Name;
 			this.OrientToObject = other.OrientToObject;
@@ -144,6 +188,16 @@ public class FXListType {
 			this.UseCallersRadius = other.UseCallersRadius;
 			this.CreateAtGroundHeight = other.CreateAtGroundHeight;
 			this.Ricochet = other.Ricochet;
+			this.AttachToObject = other.AttachToObject;
+			this.RotateX = other.RotateX;
+			this.RotateY = other.RotateY;
+			this.RotateZ = other.RotateZ;
+			this.OrientOffset = other.OrientOffset;
+			this.OrientXY = other.OrientXY;
+			this.UseCachedSurfaceInfo = other.UseCachedSurfaceInfo;
+			this.MinAllowedHeight = other.MinAllowedHeight;
+			this.MaxAllowedHeight = other.MaxAllowedHeight;
+			this.AllowedSurface = other.AllowedSurface;
 		}
 				
 	}
@@ -192,6 +246,11 @@ public class FXListType {
 	
 	public enum e_RandomType {
 		CONSTANT, UNIFORM, GAUSSIAN, TRIANGULAR, LOW_BIAS, HIGH_BIAS
+	}
+	
+	//Matches AllowedSurfaceNames in the engine's FXList.cpp
+	public enum e_AllowedSurface {
+		ALL, LAND, WATER
 	}
 
 	public String getFormattedCode(String name) {

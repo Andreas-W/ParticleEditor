@@ -65,6 +65,7 @@ import util.Undo;
 import util.Util;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
+import entitytypes.FXListType.e_AllowedSurface;
 import entitytypes.ParticleSystemType.e_Priority;
 import gui.filter.FilterDialog;
 import gui.filter.FilterPanel_Scale;
@@ -97,6 +98,7 @@ public class MainWindow extends JFrame {
 	private ValueTextField tfTrailSpeed;
 	public JComboBox cbModel;
 	public JComboBox cbMaxPriority;
+	public JComboBox cbSurfaceType;
 	/**
 	 * Create the frame.
 	 */
@@ -527,6 +529,24 @@ public class MainWindow extends JFrame {
 		cbMaxPriority.setSelectedIndex(cbMaxPriority.getItemCount()-1);
 		cbMaxPriority.setMaximumRowCount(64);
 		panel_4.add(cbMaxPriority);
+
+		JLabel lblSurfaceType = new JLabel("Surface Type:");
+		lblSurfaceType.setOpaque(true); //a JLabel paints no background unless it is opaque
+		lblSurfaceType.setBackground(Util.FORK_ONLY_COLOR);
+		lblSurfaceType.setToolTipText("Only exists in the modding fork. Shows only the ParticleSystem entries that would play on this surface. ALL shows everything.");
+		panel_4.add(lblSurfaceType);
+		cbSurfaceType = new JComboBox();
+		cbSurfaceType.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				if (cbSurfaceType.getSelectedIndex() >= 0) {
+					renderer.surfaceType = (e_AllowedSurface)cbSurfaceType.getSelectedItem();
+				}
+			}
+		});
+		cbSurfaceType.setModel(new DefaultComboBoxModel(e_AllowedSurface.values()));
+		cbSurfaceType.setSelectedItem(e_AllowedSurface.ALL);
+		cbSurfaceType.setMaximumRowCount(64);
+		panel_4.add(cbSurfaceType);
 
 	}
 

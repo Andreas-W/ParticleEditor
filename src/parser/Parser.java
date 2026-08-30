@@ -240,7 +240,10 @@ public class Parser {
 				next.toLowerCase().equals("sound") ||
 				next.toLowerCase().equals("viewshake") ||
 				next.toLowerCase().equals("tracer") ||
-				next.toLowerCase().equals("terrainscorch");
+				next.toLowerCase().equals("terrainscorch") ||
+				next.toLowerCase().equals("decal") ||
+				next.toLowerCase().equals("rayeffect") ||
+				next.toLowerCase().equals("fxlistatbonepos");
 	}
 	
 	public static FXListType parseFXListCode(String code, String name) {

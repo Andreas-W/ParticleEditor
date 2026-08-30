@@ -1,3 +1,25 @@
+08/30/2026
+----------
+-Fixed a crash in the 3d view ("NullPointerException ... m.args[3] is null" in the J3D-RenderingAttributesStructureUpdateThread). This is a bug inside Java3D 1.7.2 itself, so the project now ships a patched copy of org/jogamp/java3d/RenderingAttributesStructure.java that ignores the incomplete message instead of throwing. Java3D kills that thread when it throws, which stops the view from updating.
+-Added a safeguard so an internal Java3D error can no longer kill one of its update threads (which froze the view). Java3D sometimes hands a structure an already recycled, all-null message while switching effects; the thread now logs the problem and carries on instead of dying.
+
+08/29/2026 (4)
+----------
+-Added gui support for the fork only ParticleSystem entry parameters in the Options menu: AllowedSurface, UseCachedSurfaceInfo, MinAllowedHeight, MaxAllowedHeight, OrientOffset and OrientXY. Leave the height fields empty for "no limit".
+-New "Surface Type" selector in the main window. Only shows the ParticleSystem entries that would play on that surface, same idea as Max Priority. ALL (the default) shows everything.
+-Parameters that only exist in the modding fork now have a green background in the gui.
+-Fixed: "Duplicate this Entry" only copied the ParticleSystem name. It now copies every value of the entry (offset, count, delay, radius, height, all checkboxes and the fork only parameters) and its show/hide state.
+
+08/29/2026 (3)
+----------
+-FXList ParticleSystem entries: added the parameters the editor was missing, so they are no longer lost when saving. RotateX, RotateY, RotateZ and AttachToObject (base game), plus OrientOffset, OrientXY, MinAllowedHeight, MaxAllowedHeight, AllowedSurface and UseCachedSurfaceInfo (modding fork only).
+-These are read and written back but not shown in the gui. They also survive undo and the scale filter now.
+
+08/29/2026 (2)
+----------
+-FXList: Decal, RayEffect and FXListAtBonePos blocks are now preserved on load/save (like LightPulse, Sound, ViewShake). They are not shown or editable, just kept intact.
+-Fixed: an FXList containing an unrecognized block type was silently truncated on load, and saving spilled the rest of the entry into the file outside any FXList. Block names are now matched case-insensitively when saving.
+
 08/29/2026
 ----------
 -Ported off Java 8: the editor now builds and runs on Java 22+

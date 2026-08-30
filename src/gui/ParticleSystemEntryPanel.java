@@ -44,6 +44,7 @@ import main.Main;
 import main.Renderer;
 import entitytypes.FXListType.ParticleSystemEntry;
 import entitytypes.FXListType.ParticleSystemEntry.RandomFloatEntry;
+import entitytypes.FXListType.e_AllowedSurface;
 import entitytypes.FXListType.e_RandomType;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
@@ -55,6 +56,8 @@ import java.awt.event.ItemEvent;
 
 import javax.swing.ImageIcon;
 
+import util.Util;
+import javax.swing.ButtonGroup;
 import util.Undo;
 import util.Undo.OperationType;
 
@@ -79,6 +82,14 @@ public class ParticleSystemEntryPanel extends JPanel {
 	private JCheckBox chckbxmntmOrienttoobject;
 	private JCheckBox chckbxmntmRicochet;
 	private JCheckBox chckbxmntmCreateatgroundheight;
+	//Fork-only parameters, marked green in the menu
+	private JCheckBox chckbxmntmOrientoffset;
+	private JCheckBox chckbxmntmOrientxy;
+	private JCheckBox chckbxmntmUsecachedsurfaceinfo;
+	private JRadioButtonMenuItem[] rb_allowedSurface;
+	private ButtonGroup grp_allowedSurface;
+	private ValueTextField tf_MinAllowedHeight;
+	private ValueTextField tf_MaxAllowedHeight;
 	private JCheckBox chckbxShowParticle;
 	
 	private PropertyChangeListener FXvaluesChangedListener;
@@ -182,9 +193,11 @@ public class ParticleSystemEntryPanel extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Undo.performFXOperation("Add ParticleSystem", OperationType.EDIT);
-				ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry();
-				entry.Name = ParticleSystemEntryPanel.this.entry.Name;
-				//TODO: Fill other values
+				//The copy constructor already copies every field, so new parameters
+				//are picked up here automatically instead of being forgotten.
+				ParticleSystemEntry source = ParticleSystemEntryPanel.this.entry;
+				ParticleSystemEntry entry = Main.activeFXListType.new ParticleSystemEntry(source);
+				entry.setVisible(source.isVisible()); //not part of the copy constructor
 				Main.activeFXListType.ParticleSystems.add(entry);
 				ParticleSystemEntryPanel pse_panel = new ParticleSystemEntryPanel(renderer, entry);
 				renderer.editPanel.getPanel_ParticleEntries().add(pse_panel);
@@ -476,6 +489,63 @@ public class ParticleSystemEntryPanel extends JPanel {
 		pm_optionsMenu.add(chckbxmntmOrienttoobject);
 		pm_optionsMenu.add(chckbxmntmRicochet);
 		pm_optionsMenu.add(chckbxmntmCreateatgroundheight);
+
+		//Fork-only parameters below. AllowedSurface uses radio menu items rather than
+		//a combo box on purpose: a combo opens a nested popup, which dismisses this
+		//menu (setLightWeightPopupEnabled/doNotCancelPopup do not prevent it).
+		chckbxmntmOrientoffset = new JCheckBox("OrientOffset");
+		chckbxmntmOrientxy = new JCheckBox("OrientXY");
+		chckbxmntmUsecachedsurfaceinfo = new JCheckBox("UseCachedSurfaceInfo");
+		for (JCheckBox cb : new JCheckBox[]{chckbxmntmOrientoffset, chckbxmntmOrientxy, chckbxmntmUsecachedsurfaceinfo}) {
+			cb.setOpaque(true); //without this the background colour is not painted
+			cb.setBackground(Util.FORK_ONLY_COLOR);
+			pm_optionsMenu.add(cb);
+		}
+
+		JLabel lblAllowedSurface = new JLabel(" AllowedSurface:");
+		lblAllowedSurface.setOpaque(true);
+		lblAllowedSurface.setBackground(Util.FORK_ONLY_COLOR);
+		pm_optionsMenu.add(lblAllowedSurface);
+		grp_allowedSurface = new ButtonGroup();
+		rb_allowedSurface = new JRadioButtonMenuItem[e_AllowedSurface.values().length];
+		for (int i = 0; i < e_AllowedSurface.values().length; i++) {
+			final e_AllowedSurface surface = e_AllowedSurface.values()[i];
+			JRadioButtonMenuItem rb = new JRadioButtonMenuItem(surface.toString());
+			rb.setOpaque(true);
+			rb.setBackground(Util.FORK_ONLY_COLOR);
+			rb.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent ev) {
+					if (entry == null || ignoreChanges) return;
+					Undo.performFXOperation("changed AllowedSurface", OperationType.EDIT);
+					updateEntryValues();
+					renderer.editPanel.updateFXCode();
+					renderer.mainWindow.reset = true;
+				}
+			});
+			grp_allowedSurface.add(rb);
+			rb_allowedSurface[i] = rb;
+			pm_optionsMenu.add(rb);
+		}
+
+		JPanel panel_heights = new JPanel(new FlowLayout(FlowLayout.LEADING, 4, 2));
+		panel_heights.setOpaque(true);
+		panel_heights.setBackground(Util.FORK_ONLY_COLOR);
+		JLabel lblAllowedHeight = new JLabel("Min/MaxAllowedHeight:");
+		lblAllowedHeight.setToolTipText("Leave empty for no limit");
+		panel_heights.add(lblAllowedHeight);
+		tf_MinAllowedHeight = new ValueTextField(ValueTextField.VALUE_FLOAT);
+		tf_MinAllowedHeight.setName("MinAllowedHeight");
+		tf_MinAllowedHeight.setColumns(5);
+		tf_MinAllowedHeight.setToolTipText("Leave empty for no limit");
+		tf_MinAllowedHeight.setAllowEmpty(Float.NEGATIVE_INFINITY);
+		panel_heights.add(tf_MinAllowedHeight);
+		tf_MaxAllowedHeight = new ValueTextField(ValueTextField.VALUE_FLOAT);
+		tf_MaxAllowedHeight.setName("MaxAllowedHeight");
+		tf_MaxAllowedHeight.setColumns(5);
+		tf_MaxAllowedHeight.setToolTipText("Leave empty for no limit");
+		tf_MaxAllowedHeight.setAllowEmpty(Float.POSITIVE_INFINITY);
+		panel_heights.add(tf_MaxAllowedHeight);
+		pm_optionsMenu.add(panel_heights);
 		tglbtnOptions.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ev) {
@@ -505,6 +575,11 @@ public class ParticleSystemEntryPanel extends JPanel {
 		chckbxmntmOrienttoobject.addItemListener(FXcheckboxChangedListener);
 		chckbxmntmRicochet.addItemListener(FXcheckboxChangedListener);
 		chckbxmntmUsecallersradius.addItemListener(FXcheckboxChangedListener);
+		chckbxmntmOrientoffset.addItemListener(FXcheckboxChangedListener);
+		chckbxmntmOrientxy.addItemListener(FXcheckboxChangedListener);
+		chckbxmntmUsecachedsurfaceinfo.addItemListener(FXcheckboxChangedListener);
+		tf_MinAllowedHeight.addPropertyChangeListener(FXvaluesChangedListener);
+		tf_MaxAllowedHeight.addPropertyChangeListener(FXvaluesChangedListener);
 		
 		//cb_particleName.addPropertyChangeListener(FXvaluesChangedListener);
 
@@ -522,6 +597,14 @@ public class ParticleSystemEntryPanel extends JPanel {
 		entry.Ricochet = chckbxmntmRicochet.isSelected();
 		entry.UseCallersRadius = chckbxmntmUsecallersradius.isSelected();
 		entry.OrientToObject = chckbxmntmOrienttoobject.isSelected();
+		entry.OrientOffset = chckbxmntmOrientoffset.isSelected();
+		entry.OrientXY = chckbxmntmOrientxy.isSelected();
+		entry.UseCachedSurfaceInfo = chckbxmntmUsecachedsurfaceinfo.isSelected();
+		for (int i = 0; i < rb_allowedSurface.length; i++)
+			if (rb_allowedSurface[i].isSelected()) entry.AllowedSurface = e_AllowedSurface.values()[i];
+		//Blank means "no limit"; ValueTextField hands back the infinity it was given.
+		entry.MinAllowedHeight = (float)tf_MinAllowedHeight.getValue();
+		entry.MaxAllowedHeight = (float)tf_MaxAllowedHeight.getValue();
 		
 		//-Random Values--
 		float f1, f2;
@@ -575,6 +658,12 @@ public class ParticleSystemEntryPanel extends JPanel {
 		this.chckbxmntmOrienttoobject.setSelected(entry.OrientToObject);
 		this.chckbxmntmRicochet.setSelected(entry.Ricochet);
 		this.chckbxmntmUsecallersradius.setSelected(entry.UseCallersRadius);
+		this.chckbxmntmOrientoffset.setSelected(entry.OrientOffset);
+		this.chckbxmntmOrientxy.setSelected(entry.OrientXY);
+		this.chckbxmntmUsecachedsurfaceinfo.setSelected(entry.UseCachedSurfaceInfo);
+		this.rb_allowedSurface[entry.AllowedSurface.ordinal()].setSelected(true);
+		this.tf_MinAllowedHeight.setValue(entry.MinAllowedHeight);
+		this.tf_MaxAllowedHeight.setValue(entry.MaxAllowedHeight);
 		this.tf_Count.setValue(entry.Count);
 		
 		if (entry.InitialDelay != null) {

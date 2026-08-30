@@ -80,6 +80,7 @@ import org.jogamp.java3d.utils.universe.ViewingPlatform;
 import entities.Entity;
 import entitytypes.FXListType;
 import entitytypes.ParticleSystemType;
+import entitytypes.FXListType.e_AllowedSurface;
 import entitytypes.ParticleSystemType.e_Priority;
 import gui.BrowsePanel;
 import gui.EditPanel;
@@ -110,6 +111,7 @@ public class Renderer {
 	public HashMap<String, Scene> models = new HashMap<String, Scene>();
 	
 	public e_Priority maxParticlePriority = e_Priority.ALWAYS_RENDER;
+	public e_AllowedSurface surfaceType = e_AllowedSurface.ALL;
 
 	//GUI ELEMENTS
 	//---------------

@@ -77,6 +77,9 @@ public class Util {
 		timerLog = new StringBuilder();
 	}
 	
+	/** Background tint marking parameters that only exist in the modding fork. */
+	public static final Color FORK_ONLY_COLOR = new Color(198, 239, 206);
+
 	public static String fmt(float f)
 	{
 	    if(f == (long) f)
@@ -190,7 +193,11 @@ public class Util {
 			File fx_ini_new = new File(Config.currentFXListFile+"_new");
 			PrintWriter pw = new PrintWriter(new FileWriter(fx_ini_new));
 			Scanner sc = new Scanner(fx_ini_old);
-			Pattern p_token = Pattern.compile("^\\s*(ViewShake|Sound|ParticleSystem|TerrainScorch|LightPulse|Tracer)\\s*(;.*)*$");
+			//Must list every sub-block type Parser.isAdditionalEntry() accepts, plus
+			//ParticleSystem. A block missing here ends the skip loop at its own End,
+			//which spills the rest of the entry into the file outside any FXList.
+			//Case-insensitive to match the parser, which lowercases before comparing.
+			Pattern p_token = Pattern.compile("^\\s*(ViewShake|Sound|ParticleSystem|TerrainScorch|LightPulse|Tracer|Decal|RayEffect|FXListAtBonePos)\\s*(;.*)*$", Pattern.CASE_INSENSITIVE);
 			Pattern p_end = Pattern.compile("^\\s*End\\s*(;.*)*$");
 			sc.useLocale(Locale.ENGLISH);
 			boolean done = false;

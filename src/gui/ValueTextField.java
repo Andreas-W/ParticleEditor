@@ -24,6 +24,9 @@ public class ValueTextField extends JTextField{
 	
 	private Object value = null;
 	
+	//non-null once setAllowEmpty() was called; the value a blank field stands for
+	private Float emptyValue = null;
+	
 	boolean loseFocusOnEnter = true;
 
 	public ValueTextField(int valType) {
@@ -60,7 +63,27 @@ public class ValueTextField extends JTextField{
 	}
 	
 	
+	/**
+	 * Lets a blank field stand for a value that has no sensible number, e.g. the
+	 * +/-Infinity the engine uses for "no height limit". Without this a blank field
+	 * falls back to 0, which for those fields would mean a real limit of zero.
+	 */
+	public void setAllowEmpty(float emptyValue) {
+		this.emptyValue = emptyValue;
+		if (isEmptyValue(value)) setText("");
+	}
+
+	private boolean isEmptyValue(Object v) {
+		return emptyValue != null && v instanceof Float
+				&& Float.compare((Float)v, emptyValue) == 0;
+	}
+
 	private void verifyText() {
+		if (emptyValue != null && getText().trim().isEmpty()) {
+			value = emptyValue;
+			setText("");
+			return;
+		}
 		try {
 			if (valueType == VALUE_INT) {
 				value = (int)(Float.parseFloat(getText())); 
@@ -78,7 +101,12 @@ public class ValueTextField extends JTextField{
 				setText(Util.fmt((float)value));
 			}
 		} catch (NumberFormatException ex) {
-			setText(""+0);
+			if (emptyValue != null) {
+				value = emptyValue;
+				setText("");
+			} else {
+				setText(""+0);
+			}
 		}
 	}
 
@@ -98,8 +126,8 @@ public class ValueTextField extends JTextField{
 	}
 
 	public void setValue(float f) {
-		setText(Util.fmt(f));
 		value = f;
+		setText(isEmptyValue(f) ? "" : Util.fmt(f));
 	}
 	
 	public void setMaxValue(float f) {
